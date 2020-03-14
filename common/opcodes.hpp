@@ -3,7 +3,8 @@
 namespace common {
 
 // this enum represent all the opcodes of reqvm
-enum class opcode {
+enum class opcode : unsigned char {
+    noop  = 0,
     call  = 1,
     ret   = 2,
 
@@ -33,7 +34,5 @@ enum class opcode {
     jg    = 48,
     jgeq  = 49,
 };
-
-
 
 }
