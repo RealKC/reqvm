@@ -1,1 +1,5 @@
-.vscode
+.vscode/**
+!.vscode/tasks.json
+
+assembler/obj/**
+vm/obj/**
