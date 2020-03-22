@@ -1,8 +1,10 @@
 #pragma once 
 
+#include <cstdint>
+
 namespace common {
 
-enum class registers : unsigned char {
+enum class registers : std::uint8_t{
     pc   =  0,
     sp   =  1,
 
@@ -92,5 +94,29 @@ enum class registers : unsigned char {
     ifa14 = 146,
     ifa15 = 147
 };
+
+constexpr bool operator==(registers lhs, registers rhs) noexcept {
+    return static_cast<unsigned char>(lhs) == static_cast<unsigned char>(rhs);
+}
+
+constexpr bool operator!=(registers lhs, registers rhs) noexcept {
+    return !(lhs == rhs);
+}
+
+constexpr bool operator<(registers lhs, registers rhs) noexcept {
+    return static_cast<unsigned char>(lhs) < static_cast<unsigned char>(rhs);
+}
+
+constexpr bool operator>(registers lhs, registers rhs) noexcept {
+    return rhs < lhs;
+}
+
+constexpr bool operator<=(registers lhs, registers rhs) noexcept {
+    return !(lhs > rhs);
+}
+
+constexpr bool operator>=(registers lhs, registers rhs) noexcept {
+    return !(lhs < rhs);
+}
 
 }
