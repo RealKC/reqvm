@@ -48,6 +48,8 @@ All registers will be 64bit. List of registers:
 |   `26`   | `or`  | `or r1, r2`  | bitwise ORs `r1` and `r2`, stores result in `r1`|
 |   `27`   | `xor` | `xor r1, r2` | bitwise XORs `r1` and `r2`, stores result in `r1`|
 |   `28`   | `not` | `not r1`     | bitwise NOTs `r1`, stores result in `r1`|
+|   `29`   | `lshft` | `lshft r1, r2` | Performs `r1 <<= r2` |
+|   `30`   | `rshft` | `rshft r1, r2` | Performs `r1 >>= r2` |
 |   `35`   | `push` | `push reg`  | pushes `reg` onto the stack, increases the `sp` by 1|
 |   `36`   | `pushc` | `pushc constant` | pushes the `constant` on the stack, stored in the binary as 8 bytes|
 |   `37`   | `pop`   | `pop reg` | pops the top value from the stack into `reg`|

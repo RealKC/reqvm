@@ -18,7 +18,9 @@ enum class opcode : unsigned char {
     or_   = 26,
     xor_  = 27,
     not_  = 28,
-
+    lshft = 29,
+    rshft = 30,
+     
     // Stack operations
     push  = 35,
     pushc = 36,
