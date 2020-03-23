@@ -168,8 +168,7 @@ auto assembler::assemble() -> int {
 
             // All the one operand opcodes
             case opcode::call:
-                // this might need some special handling
-                emit_op(opcode::call);
+                emit_call(line, idx);
                 break;
             case opcode::push: {
                 auto r1 = get_register(line, idx, false);
@@ -177,7 +176,7 @@ auto assembler::assemble() -> int {
                 break;
             }
             case opcode::pushc: {
-                // we'll need a special thing for this, probs
+                emit_pushc(line, idx);
                 break;
             }
             case opcode::pop: {

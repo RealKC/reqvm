@@ -27,6 +27,10 @@ private:
         common::opcode op,
         common::registers r1 = common::registers::none,
         common::registers r2 = common::registers::none) -> void;
+    auto emit_pushc(const std::string& line, std::size_t start) -> void;
+    auto emit_jump(const std::string& line, std::size_t label_start) -> void;
+    auto emit_call(const std::string& line, std::size_t label_start) -> void;
+    auto emit_labels() -> void;
 
     static auto get_opcode(const std::string& line, std::size_t len) 
         -> common::opcode;
@@ -34,6 +38,7 @@ private:
         -> common::registers;
 
     std::vector<char> output;
+    std::unordered_map<std::string, std::uint64_t> labels;
     std::string file_name;
     std::string preprocessed_file;
 };
