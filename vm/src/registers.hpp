@@ -24,15 +24,24 @@ public:
     static auto is_error_on_lhs(tag reg) noexcept -> bool;
 
     auto operator[](tag reg) noexcept -> std::uint64_t&;
-    auto general_purpose() noexcept -> std::array<std::uint64_t, 64>&{
+
+    auto general_purpose() noexcept -> std::array<std::uint64_t, 64>& {
         return _general_purpose;
     }
     auto integer_function_args() noexcept -> std::array<std::uint64_t, 16>& {
         return _integer_functions_args;
     }
+
     auto pc() noexcept -> const std::uint64_t& {
         return _program_counter;
     }
+    auto advance_pc(std::uint64_t n) noexcept -> void {
+        _program_counter += n;
+    }
+    auto jump_to(std::uint64_t address) noexcept -> void {
+        _program_counter = address;
+    }
+
     auto sp() noexcept -> const std::uint64_t& {
         return _stack_pointer;
     }
