@@ -14,6 +14,12 @@ auto registers::parse_from_byte(std::uint8_t byte) noexcept -> registers::tag {
     if (reg == common::registers::ire) {
         return {registers::tag::kind::ire, 0};
     }
+
+// Let me tell you something fun, the standard says that arithmetic on types
+// smaller than `int` must have its operands cast to int, so we ignore a 
+// narrowing warning here, because we know our operands won't overflow a uint8_t
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnarrowing" 
     if (common::registers::gp00 <= reg && reg <= common::registers::gp63) {
         return {
             registers::tag::kind::gp,
@@ -26,6 +32,7 @@ auto registers::parse_from_byte(std::uint8_t byte) noexcept -> registers::tag {
             byte - static_cast<std::uint8_t>(common::registers::ifa00)
         };
     }
+#pragma GCC diagnostic pop
 
     // We shouldn't reach this
     // TODO: make a macro to tell that to the compiler
