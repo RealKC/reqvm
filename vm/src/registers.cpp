@@ -2,8 +2,8 @@
 
 namespace reqvm {
 
-registers::tag registers::parse_from_byte(std::uint8_t byte) noexcept {
-    const common::registers reg = static_cast<common::registers>(byte);
+auto registers::parse_from_byte(std::uint8_t byte) noexcept -> registers::tag {
+    const auto reg = static_cast<common::registers>(byte);
 
     if (reg == common::registers::sp) {
         return {registers::tag::kind::sp, 0};
@@ -31,7 +31,7 @@ registers::tag registers::parse_from_byte(std::uint8_t byte) noexcept {
     // TODO: make a macro to tell that to the compiler
 }
 
-std::uint64_t& registers::operator[](registers::tag tag) noexcept {
+auto registers::operator[](registers::tag tag) noexcept -> std::uint64_t& {
     switch (tag.kind) {
     case registers::tag::kind::pc:
         return _program_counter;
@@ -46,10 +46,11 @@ std::uint64_t& registers::operator[](registers::tag tag) noexcept {
     default:
         // Should not be reached
         // TODO: make a macro to tell that to the compiler
+        throw 0; // for now we just throw
     }
 }
 
-bool registers::is_error_on_lhs(registers::tag reg) noexcept {
+auto registers::is_error_on_lhs(registers::tag reg) noexcept -> bool {
     switch(reg.kind) {
     case registers::tag::kind::pc:
     case registers::tag::kind::sp:

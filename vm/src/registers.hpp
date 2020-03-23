@@ -20,19 +20,20 @@ public:
         std::uint8_t idx;
     };
 
-    static tag parse_from_byte(std::uint8_t byte) noexcept;
-    static bool is_error_on_lhs(tag reg) noexcept;
-    std::uint64_t& operator[](tag reg) noexcept;
-    std::array<std::uint64_t, 64>& general_purpose() noexcept {
+    static auto parse_from_byte(std::uint8_t byte) noexcept -> tag;
+    static auto is_error_on_lhs(tag reg) noexcept -> bool;
+
+    auto operator[](tag reg) noexcept -> std::uint64_t&;
+    auto general_purpose() noexcept -> std::array<std::uint64_t, 64>&{
         return _general_purpose;
     }
-    std::array<std::uint64_t, 16>& integer_function_args() noexcept {
+    auto integer_function_args() noexcept -> std::array<std::uint64_t, 16>& {
         return _integer_functions_args;
     }
-    const std::uint64_t& pc() noexcept {
+    auto pc() noexcept -> const std::uint64_t& {
         return _program_counter;
     }
-    const std::uint64_t& sp() noexcept {
+    auto sp() noexcept -> const std::uint64_t& {
         return _stack_pointer;
     }
 private:

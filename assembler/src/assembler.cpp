@@ -7,7 +7,7 @@
 
 namespace reqvm {
 
-int assembler::run() {
+auto assembler::run() -> int {
     int error = preprocess();
     if (error) {
         return error;
@@ -15,7 +15,7 @@ int assembler::run() {
     return assemble();
 }
 
-int assembler::preprocess() {
+auto assembler::preprocess() -> int {
     std::unordered_map<std::string, std::string> macros;
 
     preprocessed_file = file_name + "reqvm_pp_no_steal_2020.reqvm";
