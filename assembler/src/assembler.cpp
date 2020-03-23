@@ -5,6 +5,37 @@
 #include <unordered_map>
 #include <string>
 
+// This is an incredibly dumb hashing functions, we just make the bytes 
+// of the string be a std::uint64_t instead.
+// Not cryptographically secure, but we don't need that.
+// A current limitation is that an instruction can't be more than 8 characters
+// long, but who needs that anyway?
+static constexpr auto hash(const char* str, std::size_t len) -> std::uint64_t {
+    if (len > 9) {
+        return ~0ull;
+    }
+
+    char s[8] = {0};
+    for (auto i = std::size_t{0}; i < len; i++) {
+        s[i] = str[i];
+    }
+
+    return static_cast<std::uint64_t>(s[0]) << 56
+        | static_cast<std::uint64_t>(s[1]) << 48
+        | static_cast<std::uint64_t>(s[2]) << 40
+        | static_cast<std::uint64_t>(s[3]) << 32
+        | static_cast<std::uint64_t>(s[4]) << 24
+        | static_cast<std::uint64_t>(s[5]) << 16
+        | static_cast<std::uint64_t>(s[6]) << 8
+        | static_cast<std::uint64_t>(s[7]);
+
+}
+
+static constexpr auto operator""_u64(const char* s, unsigned long long l) 
+    -> std::uint64_t {
+    return hash(s, l);
+}
+
 namespace reqvm {
 
 auto assembler::run() -> int {
@@ -28,7 +59,15 @@ auto assembler::preprocess() -> int {
         std::size_t idx = is_elif ? 6 : 4; // skip %if/%elif and the first space
         while (idx < line.size()) {
             if (std::isdigit(line[idx])) {
-                // parse value 
+                std::string num;
+                while (line[idx] != ' ') {
+                    if (!isdigit(line[idx])) {
+                        // TODO: spew error
+                        break;
+                    }
+                    num.push_back(line[idx]);
+                }
+
             } else if (std::isalpha(line[idx])) {
                 // spew an error, quit
             } else {
@@ -103,6 +142,145 @@ auto assembler::preprocess() -> int {
             }
 
         }
+    }
+
+}
+
+auto assembler::assemble() -> int {
+    std::ifstream file {preprocessed_file};
+
+    std::string line;
+    while (std::getline(file, line)) {
+    std::size_t idx = 0;
+        while (idx < line.size()) {
+            using common::opcode;
+            
+            while (line[idx] != ' ') {
+                idx++;
+            }
+            // We can handle multiple opcodes with the same amount of operands at 
+            // the same time 
+            switch (auto op = get_opcode(line, idx); op) {
+            case opcode::noop:
+            case opcode::ret:
+                emit_op(op);
+                break;
+
+            // All the one operand opcodes
+            case opcode::call:
+                // this might need some special handling
+                emit_op(opcode::call);
+                break;
+            case opcode::push: {
+                auto r1 = get_register(line, idx, false);
+                emit_op(op, r1);
+                break;
+            }
+            case opcode::pushc: {
+                // we'll need a special thing for this, probs
+                break;
+            }
+            case opcode::pop: {
+                auto r1 = get_register(line, idx, true);
+                emit_op(op, r1);
+                break;
+            }
+
+            // All the two operand opcodes
+            case opcode::add:
+            case opcode::sub:
+            case opcode::mul:
+            case opcode::div:
+            case opcode::mod:
+            case opcode::and_:
+            case opcode::or_:
+            case opcode::xor_:
+            case opcode::lshft:
+            case opcode::rshft:
+            case opcode::cmp: {
+                auto r1 = get_register(line, idx, true);
+                auto r2 = get_register(line, idx, false);
+                emit_op(op, r1, r2);
+                break;
+            }
+
+            // All the jumps
+            case opcode::jmp:
+            case opcode::jeq:
+            case opcode::jneq:
+            case opcode::jl:
+            case opcode::jleq:
+            case opcode::jg:
+            case opcode::jgeq: {
+                // we'll figure this at the right time
+            }
+
+            default:
+                // TODO: spew error better
+                throw 0;
+            }
+        }
+    }
+}
+
+auto assembler::get_opcode(const std::string& line, std::size_t len) 
+    -> common::opcode {
+    using common::opcode;
+
+    switch (hash(line.c_str(), len)) {
+    case "noop"_u64:
+        return opcode::noop;
+    case "call"_u64: 
+        return opcode::call;
+    case "ret"_u64:
+        return opcode::ret;
+    case "add"_u64:
+        return opcode::add;
+    case "sub"_u64:
+        return opcode::sub;
+    case "mul"_u64:
+        return opcode::mul;
+    case "div"_u64:
+        return opcode::div;
+    case "mod"_u64:
+        return opcode::mul;
+    case "and"_u64:
+        return opcode::and_;
+    case "or"_u64:
+        return opcode::or_;
+    case "xor"_u64:
+        return opcode::xor_;
+    case "not"_u64:
+        return opcode::not_;
+    case "lshft"_u64:
+        return opcode::lshft;
+    case "rshft"_u64:
+        return opcode::rshft;
+    case "push"_u64:
+        return opcode::push;
+    case "pushc"_u64:
+        return opcode::pushc;
+    case "pop"_u64:
+        return opcode::pop;
+    case "cmp"_u64:
+        return opcode::cmp;
+    case "jmp"_u64:
+        return opcode::jmp;
+    case "jeq"_u64:
+        return opcode::jeq;
+    case "jneq"_u64:
+        return opcode::jneq;
+    case "jl"_u64:
+        return opcode::jl;
+    case "jleq"_u64:
+        return opcode::jleq;
+    case "jg"_u64:
+        return opcode::jg;
+    case "jgeq"_u64:
+        return opcode::jgeq;
+    default:
+        // TODO: throw an actually informative exception
+        throw 0;
     }
 
 }

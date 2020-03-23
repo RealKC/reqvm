@@ -5,6 +5,9 @@
 #include <vector>
 #include <unordered_map>
 
+#include "../../common/opcodes.hpp"
+#include "../../common/registers.hpp"
+
 namespace reqvm {
 
 class assembler {
@@ -19,9 +22,16 @@ public:
     auto assemble()   -> int;
 
 private:
-    auto emit_macro() -> void;
     auto emit_label() -> void;
-    auto emit_op()    -> void;
+    auto emit_op(
+        common::opcode op,
+        common::registers r1 = common::registers::none,
+        common::registers r2 = common::registers::none) -> void;
+
+    static auto get_opcode(const std::string& line, std::size_t len) 
+        -> common::opcode;
+    static auto get_register(const std::string& line, std::size_t start, bool is_lhs) 
+        -> common::registers;
 
     std::vector<char> output;
     std::string file_name;

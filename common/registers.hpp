@@ -5,8 +5,9 @@
 namespace common {
 
 enum class registers : std::uint8_t{
-    pc   =  0,
-    sp   =  1,
+    none =  0,
+    pc   =  1,
+    sp   =  2,
 
     // general purpose registers
     gp00 =  64,
