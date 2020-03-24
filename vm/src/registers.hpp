@@ -32,6 +32,10 @@ public:
         return _integer_functions_args;
     }
 
+    auto ire() noexcept -> std::uint64_t& {
+        return _integer_return;
+    }
+
     auto pc() noexcept -> const std::uint64_t& {
         return _program_counter;
     }

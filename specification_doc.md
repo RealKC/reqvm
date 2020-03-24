@@ -25,7 +25,7 @@ All registers will be 64bit. List of registers:
 * 64 general purpose registers: `gp0..63`
 * 16 integer function argument registers: `ifa0..15`
 * program counter(read only): `pc`
-* a register dedicated to the return value of the last function: `ire`(read only)
+* a register dedicated to the return value of the last function: `ire`
 * the stack pointer: `sp`(read only)
 
 ## Internal VM flags
