@@ -61,3 +61,4 @@ All registers will be 64bit. List of registers:
 |   `47`   | `jleq` | `jleq label` | if `CF == cf::leq`, jumps to `label` |
 |   `48`   | `jg` | `jg label` | if `CF == cf::gr`, jumps to `label` |
 |   `49`   | `jgeq` | `jgeq label` | if `CF == cf::geq`, jumps to `label`
+|   `255`  | `halt` | `halt` | stops program execution, and the VM, returning the value in `ire` to the OS |

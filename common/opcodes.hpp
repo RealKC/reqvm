@@ -35,6 +35,8 @@ enum class opcode : unsigned char {
     jleq  = 47,
     jg    = 48,
     jgeq  = 49,
+
+    halt = 255,
 };
 
 }

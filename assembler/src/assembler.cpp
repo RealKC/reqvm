@@ -31,7 +31,7 @@ static constexpr auto hash(const char* str, std::size_t len) -> std::uint64_t {
 
 }
 
-static constexpr auto operator""_u64(const char* s, unsigned long long l) 
+static constexpr auto operator""_u64(const char* s, std::size_t l) 
     -> std::uint64_t {
     return hash(s, l);
 }
@@ -214,6 +214,11 @@ auto assembler::assemble() -> int {
                 // we'll figure this at the right time
             }
 
+            case opcode::halt: {
+                emit_op(opcode::halt);
+                break;
+            }
+
             default:
                 // TODO: spew error better
                 throw 0;
@@ -277,6 +282,8 @@ auto assembler::get_opcode(const std::string& line, std::size_t len)
         return opcode::jg;
     case "jgeq"_u64:
         return opcode::jgeq;
+    case "halt"_u64:
+        return opcode::halt;
     default:
         // TODO: throw an actually informative exception
         throw 0;
