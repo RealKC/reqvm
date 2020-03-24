@@ -15,7 +15,7 @@ static constexpr auto panic = R"(
    
 )";
 
-int main() try {
+auto main() -> int try {
     reqvm::vm the_vm;
     auto ret = the_vm.run();
     return ret;

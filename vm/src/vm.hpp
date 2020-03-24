@@ -10,10 +10,10 @@ namespace reqvm {
 
 class vm final {
 public:
-    int run();
+    auto run() -> int;
 private:
-    void read_preamble();
-    void cycle(common::opcode op);
+    auto read_preamble() -> void;
+    auto cycle(common::opcode op) -> void;
 
     std::vector<std::uint8_t> _binary;
     registers _regs;

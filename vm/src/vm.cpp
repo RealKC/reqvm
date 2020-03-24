@@ -3,7 +3,7 @@
 
 namespace reqvm {
 
-int vm::run() {
+auto vm::run() -> int {
     read_preamble();
     while (_regs.pc() <= _binary.size() && !_halted) {
         cycle(static_cast<common::opcode>(_binary[_regs.pc()]));
@@ -31,7 +31,7 @@ int vm::run() {
             | static_cast<std::uint64_t>(_binary[_regs.pc() + 7]) << 8   \
             | static_cast<std::uint64_t>(_binary[_regs.pc() + 8])
 
-void vm::cycle(common::opcode op) {
+auto vm::cycle(common::opcode op) -> void {
     using common::opcode;
     switch (op) {
     case opcode::noop: {
