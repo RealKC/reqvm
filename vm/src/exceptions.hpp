@@ -16,8 +16,8 @@ public:
 
     virtual ~vm_exception() noexcept = default;
 
-    virtual common::opcode the_opcode() const noexcept = 0;
-    virtual common::registers the_register() const noexcept = 0;
+    virtual auto the_opcode() const noexcept -> common::opcode = 0;
+    virtual auto the_register() const noexcept -> common::registers = 0;
 };
 
 class invalid_opcode : public vm_exception {
@@ -36,10 +36,10 @@ public:
     
     virtual ~invalid_opcode() noexcept = default;
 
-    common::opcode the_opcode() const noexcept override {
+    auto the_opcode() const noexcept -> common::opcode override {
         return _op;
     }
-    common::registers the_register() const noexcept override {
+    auto the_register() const noexcept -> common::registers override {
         return common::registers::none;
     }
 private:
@@ -59,10 +59,10 @@ public:
     
     virtual ~invalid_register() noexcept = default;
 
-    common::opcode the_opcode() const noexcept override { 
+    auto the_opcode() const noexcept -> common::opcode override { 
         return common::opcode::noop;
     }
-    common::registers the_register() const noexcept override {
+    auto the_register() const noexcept -> common::registers override {
         return _reg;
     }
 private:
@@ -81,10 +81,10 @@ public:
     
     virtual ~bad_argument() noexcept = default;
 
-    common::registers the_register() const noexcept override {
+    auto the_register() const noexcept -> common::registers override {
         return common::registers::none;
     }
-    common::opcode the_opcode() const noexcept override {
+    auto the_opcode() const noexcept -> common::opcode override {
         return common::opcode::noop;
     }
 };
