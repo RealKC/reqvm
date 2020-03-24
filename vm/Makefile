@@ -2,7 +2,7 @@
 NAME= vm
 
 CC= g++
-CFLAGS= -std=c++11 -Wall -Wextra
+CFLAGS= -std=c++11 -Wall -Wextra -fexceptions
 LDFLAGS= 
 
 SRCDIR= src
