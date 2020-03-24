@@ -23,8 +23,8 @@ int main() try {
     std::printf(
         "e.what(): %s %#x (%u)\n",
         e.what(),
-        static_cast<unsigned int>(e.the_invalid_opcode()),
-        static_cast<unsigned int>(e.the_invalid_opcode()));
+        static_cast<unsigned int>(e.the_opcode()),
+        static_cast<unsigned int>(e.the_opcode()));
     return EXIT_FAILURE;
 } catch (const reqvm::invalid_register& e) {
     std::puts(panic);
@@ -32,8 +32,13 @@ int main() try {
     std::printf(
         "e.what(): %s %#x (%u)\n", 
         e.what(),
-        static_cast<unsigned int>(e.the_invalid_register()),
-        static_cast<unsigned int>(e.the_invalid_register()));
+        static_cast<unsigned int>(e.the_register()),
+        static_cast<unsigned int>(e.the_register()));
+    return EXIT_FAILURE;
+} catch (const reqvm::bad_argument& e) {
+    std::puts(panic);
+    std::puts("reqvm has encountered an error during the execution of your program.\n");
+    std::printf("e.what(): %s\n", e.what());
     return EXIT_FAILURE;
 } catch (const reqvm::vm_exception& e) {
     std::puts(panic);

@@ -16,8 +16,8 @@ public:
 
     virtual ~vm_exception() noexcept = default;
 
-    virtual common::opcode the_invalid_opcode() const noexcept = 0;
-    virtual common::registers the_invalid_register() const noexcept = 0;
+    virtual common::opcode the_opcode() const noexcept = 0;
+    virtual common::registers the_register() const noexcept = 0;
 };
 
 class invalid_opcode : public vm_exception {
@@ -36,10 +36,10 @@ public:
     
     virtual ~invalid_opcode() noexcept = default;
 
-    virtual common::opcode the_invalid_opcode() const noexcept override {
+    common::opcode the_opcode() const noexcept override {
         return _op;
     }
-    virtual common::registers the_invalid_register() const noexcept override {
+    common::registers the_register() const noexcept override {
         return common::registers::none;
     }
 private:
@@ -52,9 +52,6 @@ public:
     // the register)
     invalid_register() = delete;
 
-    invalid_register(common::registers reg)
-        : vm_exception{"The following invalid register was found in the provided binary: "}
-        , _reg{reg} {}
     invalid_register(const char* what_arg, common::registers reg)
         : vm_exception{what_arg}, _reg{reg} {}
     invalid_register(const std::string& what_arg, common::registers reg)
@@ -62,14 +59,34 @@ public:
     
     virtual ~invalid_register() noexcept = default;
 
-    virtual common::opcode the_invalid_opcode() const noexcept override { 
+    common::opcode the_opcode() const noexcept override { 
         return common::opcode::noop;
     }
-    virtual common::registers the_invalid_register() const noexcept override {
+    common::registers the_register() const noexcept override {
         return _reg;
     }
 private:
     common::registers _reg;
+};
+
+class bad_argument : public vm_exception {
+public:
+    // Delete default constructor to force a meaningful message
+    bad_argument() = delete;
+
+    bad_argument(const char* what_arg) 
+        : vm_exception{what_arg} {};
+    bad_argument(const std::string& what_arg)
+        : vm_exception{what_arg} {}
+    
+    virtual ~bad_argument() noexcept = default;
+
+    common::registers the_register() const noexcept override {
+        return common::registers::none;
+    }
+    common::opcode the_opcode() const noexcept override {
+        return common::opcode::noop;
+    }
 };
 
 }
