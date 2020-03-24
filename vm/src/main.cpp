@@ -2,6 +2,7 @@
 #include <cstdio>
 
 #include "exceptions.hpp"
+#include "vm.hpp"
 
 static constexpr auto panic = R"(
  __      ____  __   _____            _      
@@ -15,8 +16,9 @@ static constexpr auto panic = R"(
 )";
 
 int main() try {
-
-    return EXIT_SUCCESS;
+    reqvm::vm the_vm;
+    auto ret = the_vm.run();
+    return ret;
 } catch (const reqvm::invalid_opcode& e) {
     std::puts(panic);
     std::puts("reqvm has encountered an error during the execution of your program.\n");
