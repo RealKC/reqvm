@@ -1,6 +1,10 @@
 #include "exceptions.hpp"
 #include "vm.hpp"
 
+#include "../../common/preamble.hpp"
+
+#include <algorithm>
+
 namespace reqvm {
 
 auto vm::run() -> int {
@@ -11,7 +15,19 @@ auto vm::run() -> int {
     return static_cast<int>(_regs.ire());
 }
 
-#define CHECK_LHS_REG(opcode, reg)                                \
+auto vm::read_preamble() -> void {
+    std::string mbs_candidate;
+    mbs_candidate.reserve(sizeof(common::magic_byte_string));
+    std::copy_n(_binary.begin(), sizeof(common::magic_byte_string), mbs_candidate.begin());
+    if (mbs_candidate != common::magic_byte_string) {
+        throw 0; // add a proper exception
+    }
+    // read the version + the features
+
+    _regs.jump_to(256);
+}
+
+#define CHECK_LHS_REG(opcode, reg)                                      \
     do {                                                                \
         if (registers::is_error_on_lhs((reg))) {                        \
             throw reqvm::invalid_register {                             \
@@ -31,6 +47,16 @@ auto vm::run() -> int {
             | static_cast<std::uint64_t>(_binary[_regs.pc() + 7]) << 8   \
             | static_cast<std::uint64_t>(_binary[_regs.pc() + 8])
 
+#define CHECK_AT_LEAST_8_BYTES(opcode)                                         \
+    if (_binary.size() - _regs.pc() < 8) {                                     \
+        throw bad_argument {                                                   \
+            "Opcode '" #opcode "c' is the last opcode in your binary and after"\
+            " it there are less than 8 bytes, as such it is not possible to "  \
+            "build its argument."                                              \
+        };                                                                     \
+    }
+
+
 auto vm::cycle(common::opcode op) -> void {
     using common::opcode;
     switch (op) {
@@ -39,11 +65,19 @@ auto vm::cycle(common::opcode op) -> void {
         break;
     }
     case opcode::call: {
-        // I need to figure out the machinery for this
+        CHECK_AT_LEAST_8_BYTES(call);
+        MAKE_8_BYTE_VAL(address);
+        for (auto& gp : _regs.general_purpose()) {
+            gp = 0;
+        }
+        _stack.push(_regs.pc() + 9, _regs);
+        _regs.jump_to(address);
         break;
     }
     case opcode::ret: {
-        // see above
+        auto ret_addr = _stack.pop(_regs);
+        _regs.jump_to(ret_addr);
+        break;
     }
     case opcode::add: {
         auto r1 = registers::parse_from_byte(_binary[_regs.pc() + 1]);
@@ -138,20 +172,14 @@ auto vm::cycle(common::opcode op) -> void {
     }
     case opcode::push: {
         auto r1 = registers::parse_from_byte(_binary[_regs.pc() + 1]);
-        // TODO: actually push to the stack
+        _stack.push(_regs[r1], _regs);
         _regs.advance_pc(2);
         break;
     }
     case opcode::pushc: {
-        if (_binary.size() - _regs.pc() < 8) {
-            throw bad_argument {
-                "Opcode 'pushc' is the last opcode in your binary and after it "
-                "there are less than 8 bytes, as such it is not possible to build"
-                "its argument."
-            };
-        }
+        CHECK_AT_LEAST_8_BYTES(pushc);
         MAKE_8_BYTE_VAL(val);
-        // TODO: Push val to the stack once we have one
+        _stack.push(val, _regs);
         _regs.advance_pc(9);
         break;
     }
@@ -163,7 +191,7 @@ auto vm::cycle(common::opcode op) -> void {
                 static_cast<common::registers>(_binary[_regs.pc() + 1])
             };
         }
-        // TODO: actually pop the value into the target register
+        _regs[r1] = _stack.pop(_regs);
         _regs.advance_pc(2);
         break;
     }
@@ -175,11 +203,13 @@ auto vm::cycle(common::opcode op) -> void {
         break;
     }
     case opcode::jmp: {
+        CHECK_AT_LEAST_8_BYTES(jmp);
         MAKE_8_BYTE_VAL(address);
         _regs.jump_to(address);
         break;
     }
     case opcode::jeq: {
+        CHECK_AT_LEAST_8_BYTES(jeq);
         // TODO: check the condition for jumping
         if (0) {
             MAKE_8_BYTE_VAL(address);
@@ -190,6 +220,7 @@ auto vm::cycle(common::opcode op) -> void {
         break;
     }
     case opcode::jneq: {
+        CHECK_AT_LEAST_8_BYTES(jneq)
         // TODO: check the condition for jumping
         if (0) {
             MAKE_8_BYTE_VAL(address);
@@ -200,6 +231,7 @@ auto vm::cycle(common::opcode op) -> void {
         break;
     }
     case opcode::jl: {
+        CHECK_AT_LEAST_8_BYTES(jl)
         // TODO: check the condition for jumping
         if (0) {
             MAKE_8_BYTE_VAL(address);
@@ -210,6 +242,7 @@ auto vm::cycle(common::opcode op) -> void {
         break;
     }
     case opcode::jleq: { 
+        CHECK_AT_LEAST_8_BYTES(jleq)
         // TODO: check the condition for jumping
         if (0) {
             MAKE_8_BYTE_VAL(address);
@@ -220,6 +253,7 @@ auto vm::cycle(common::opcode op) -> void {
         break;
     }
     case opcode::jg: {
+        CHECK_AT_LEAST_8_BYTES(jq)
         // TODO: check the condition for jumping
         if (0) {
             MAKE_8_BYTE_VAL(address);
@@ -230,6 +264,7 @@ auto vm::cycle(common::opcode op) -> void {
         break;
     }
     case opcode::jgeq: {
+        CHECK_AT_LEAST_8_BYTES(jgeq)
         // TODO: check the condition for jumping
         if (0) {
             MAKE_8_BYTE_VAL(address);
@@ -249,5 +284,6 @@ auto vm::cycle(common::opcode op) -> void {
 
 #undef CHECK_LHS_REG
 #undef MAKE_8_BYTE_VAL
+#undef CHECK_AT_LEAST_8_BYTES
 
 }

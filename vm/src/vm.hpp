@@ -2,6 +2,7 @@
 
 #include "../../common/opcodes.hpp"
 #include "registers.hpp"
+#include "stack.hpp"
 
 #include <cstdint>
 #include <vector>
@@ -17,6 +18,7 @@ private:
 
     std::vector<std::uint8_t> _binary;
     registers _regs;
+    stack _stack;
     bool _halted;
 };
 
