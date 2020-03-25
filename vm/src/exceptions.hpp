@@ -89,4 +89,13 @@ public:
     }
 };
 
+class preamble_error : public std::runtime_error {
+public:
+    preamble_error() : runtime_error {
+        "reqvm was unable to start because the preamble of this binary does "
+        "not follow the standard preamble format."
+    } {}
+    virtual ~preamble_error() noexcept = default;
+};
+
 }

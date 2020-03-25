@@ -54,6 +54,10 @@ auto main() -> int try {
     std::puts(panic);
     std::puts("reqvm has detected an illegal manipulation of the stack\n");
     std::printf("e.what(): %s\n", e.what());
+} catch (const reqvm::preamble_error& e) {
+    std::puts(panic);
+    std::puts("reqvm has an ecountered an issue with the format of your binary.");
+    std::printf("e.what(): %s\n", e.what());
 } catch (const std::exception& e) {
     std::puts(panic);
     std::puts("reqvm has encountered an error during the execution of your program.\n");

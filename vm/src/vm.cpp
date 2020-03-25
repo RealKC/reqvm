@@ -20,7 +20,7 @@ auto vm::read_preamble() -> void {
     mbs_candidate.reserve(sizeof(common::magic_byte_string));
     std::copy_n(_binary.begin(), sizeof(common::magic_byte_string), mbs_candidate.begin());
     if (mbs_candidate != common::magic_byte_string) {
-        throw 0; // add a proper exception
+        throw preamble_error{}; // add a proper exception
     }
     // read the version + the features
 
@@ -33,7 +33,7 @@ auto vm::read_preamble() -> void {
             throw reqvm::invalid_register {                             \
                 "Invalid lhs operand for opcode '" #opcode "': ",       \
                 static_cast<common::registers>(_binary[_regs.pc() + 1]) \
-            };                                                          \ 
+            };                                                          \
         }                                                               \
     } while (0)
 
@@ -169,6 +169,7 @@ auto vm::cycle(common::opcode op) -> void {
         auto r2 = registers::parse_from_byte(_binary[_regs.pc() + 2]);
         _regs[r1] >>= _regs[r2];
         _regs.advance_pc(3);
+        break;
     }
     case opcode::push: {
         auto r1 = registers::parse_from_byte(_binary[_regs.pc() + 1]);

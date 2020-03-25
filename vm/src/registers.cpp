@@ -1,5 +1,5 @@
 #include "registers.hpp"
-
+#include "exceptions.hpp"
 namespace reqvm {
 
 auto registers::parse_from_byte(std::uint8_t byte) noexcept -> registers::tag {
@@ -34,8 +34,10 @@ auto registers::parse_from_byte(std::uint8_t byte) noexcept -> registers::tag {
     }
 #pragma GCC diagnostic pop
 
-    // We shouldn't reach this
-    // TODO: make a macro to tell that to the compiler
+    throw invalid_register {
+        "A byte that does not name a register was supplied as operand to an opcode",
+        static_cast<common::registers>(byte)
+    };
 }
 
 auto registers::operator[](registers::tag tag) noexcept -> std::uint64_t& {
