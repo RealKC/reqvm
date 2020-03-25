@@ -1,5 +1,6 @@
 #include <cstddef>
 #include <cstdio>
+#include <memory>
 
 #include "exceptions.hpp"
 #include "vm.hpp"
@@ -16,9 +17,8 @@ static constexpr auto panic = R"(
 )";
 
 auto main() -> int try {
-    reqvm::vm the_vm;
-    auto ret = the_vm.run();
-    return ret;
+    auto the_vm = std::make_unique<reqvm::vm>();
+    return the_vm->run();
 } catch (const reqvm::invalid_opcode& e) {
     std::puts(panic);
     std::puts("reqvm has encountered an error during the execution of your program.\n");
