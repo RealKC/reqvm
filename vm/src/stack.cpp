@@ -13,14 +13,14 @@ auto stack::push(std::uint64_t val, registers& regs) -> void {
 }
 
 auto stack::pop(registers& regs) -> std::uint64_t {
-        if (regs.sp() == 0) {
-            throw stack_error {
-                "Stack underflow: the binary has tried reading before the start "
-                "of the stack."
-            };
-        }
-        regs.sp()--;
-        return _storage[regs.sp() + 1];
+    if (regs.sp() == 0) {
+        throw stack_error {
+            "Stack underflow: the binary has tried reading before the start "
+            "of the stack."
+        };
     }
+    regs.sp()--;
+    return _storage[regs.sp() + 1];
+}
 
 }
