@@ -198,8 +198,16 @@ auto vm::cycle(common::opcode op) -> void {
     case opcode::cmp: {
         auto r1 = registers::parse_from_byte(_binary[_regs.pc() + 1]);
         auto r2 = registers::parse_from_byte(_binary[_regs.pc() + 2]);
-        // TODO: actually perform the comparison
-        _regs.advance_pc(2);
+
+        if (_regs[r1] < _regs[r2]) {
+            _flags.cmp_flag = static_cast<std::uint64_t>(flags::cf::less);
+        } else if (_regs[r1] > _regs[r2]) {
+            _flags.cmp_flag = static_cast<std::uint64_t>(flags::cf::gr);
+        } else {
+            _flags.cmp_flag = static_cast<std::uint64_t>(flags::cf::eq);
+        }
+
+        _regs.advance_pc(3);
         break;
     }
     case opcode::jmp: {
@@ -208,10 +216,12 @@ auto vm::cycle(common::opcode op) -> void {
         _regs.jump_to(address);
         break;
     }
+#define U64(x) static_cast<std::uint64_t>(x)
+
     case opcode::jeq: {
         CHECK_AT_LEAST_8_BYTES(jeq);
         // TODO: check the condition for jumping
-        if (0) {
+        if (_flags.cmp_flag == U64(flags::cf::eq)) {
             MAKE_8_BYTE_VAL(address);
             _regs.jump_to(address);
         } else {
@@ -222,7 +232,7 @@ auto vm::cycle(common::opcode op) -> void {
     case opcode::jneq: {
         CHECK_AT_LEAST_8_BYTES(jneq)
         // TODO: check the condition for jumping
-        if (0) {
+        if (_flags.cmp_flag != U64(flags::cf::eq)) {
             MAKE_8_BYTE_VAL(address);
             _regs.jump_to(address);
         } else {
@@ -233,7 +243,7 @@ auto vm::cycle(common::opcode op) -> void {
     case opcode::jl: {
         CHECK_AT_LEAST_8_BYTES(jl)
         // TODO: check the condition for jumping
-        if (0) {
+        if (_flags.cmp_flag == U64(flags::cf::less)) {
             MAKE_8_BYTE_VAL(address);
             _regs.jump_to(address);
         } else {
@@ -244,7 +254,8 @@ auto vm::cycle(common::opcode op) -> void {
     case opcode::jleq: { 
         CHECK_AT_LEAST_8_BYTES(jleq)
         // TODO: check the condition for jumping
-        if (0) {
+        if (_flags.cmp_flag == U64(flags::cf::less)
+            || _flags.cmp_flag == U64(flags::cf::eq)) {
             MAKE_8_BYTE_VAL(address);
             _regs.jump_to(address);
         } else {
@@ -255,7 +266,7 @@ auto vm::cycle(common::opcode op) -> void {
     case opcode::jg: {
         CHECK_AT_LEAST_8_BYTES(jq)
         // TODO: check the condition for jumping
-        if (0) {
+        if (_flags.cmp_flag == U64(flags::cf::gr)) {
             MAKE_8_BYTE_VAL(address);
             _regs.jump_to(address);
         } else {
@@ -266,7 +277,8 @@ auto vm::cycle(common::opcode op) -> void {
     case opcode::jgeq: {
         CHECK_AT_LEAST_8_BYTES(jgeq)
         // TODO: check the condition for jumping
-        if (0) {
+        if (_flags.cmp_flag == U64(flags::cf::gr)
+            || _flags.cmp_flag == U64(flags::cf::eq)) {
             MAKE_8_BYTE_VAL(address);
             _regs.jump_to(address);
         } else {
@@ -274,6 +286,7 @@ auto vm::cycle(common::opcode op) -> void {
         }
         break;
     }
+#undef U64
     case opcode::halt: {
         _halted = true;
         break;

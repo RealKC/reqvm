@@ -30,7 +30,7 @@ All registers will be 64bit. List of registers:
 
 ## Internal VM flags
 
-* CF("comparison flag") - stores the result of a comparison between two registers. Possible values(these will be reffered to as `cf::value`): `eq`(equal), `less`(less than), `leq`(less or equal than), `gr`(greater than), `geq`(greater or equal than).
+* CF("comparison flag") - stores the result of a comparison between two registers. Possible values(these will be reffered to as `cf::value`): `eq`(equal), `less`(less than), `gr`(greater than).
 
 ## Instruction table
 
@@ -58,7 +58,7 @@ All registers will be 64bit. List of registers:
 |   `44`   | `jeq` | `jeq label` | if `CF == cf::eq`, jumps to `label` |
 |   `45`   | `jneq` | `jneq label` | if `CF != cf::eq` jumps to `label` |
 |   `46`   | `jl` | `jl label` | if `CF == cf::less`, jumps to `label` |
-|   `47`   | `jleq` | `jleq label` | if `CF == cf::leq`, jumps to `label` |
+|   `47`   | `jleq` | `jleq label` | if `CF == cf::less` or `CF == cf::eq`, jumps to `label` |
 |   `48`   | `jg` | `jg label` | if `CF == cf::gr`, jumps to `label` |
-|   `49`   | `jgeq` | `jgeq label` | if `CF == cf::geq`, jumps to `label`
+|   `49`   | `jgeq` | `jgeq label` | if `CF == cf::gr` or `CF == cf::eq`, jumps to `label`
 |   `255`  | `halt` | `halt` | stops program execution, and the VM, returning the value in `ire` to the OS |

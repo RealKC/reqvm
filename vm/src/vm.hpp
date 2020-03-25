@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../common/opcodes.hpp"
+#include "flags.hpp"
 #include "registers.hpp"
 #include "stack.hpp"
 
@@ -19,6 +20,7 @@ private:
     std::vector<std::uint8_t> _binary;
     registers _regs;
     stack _stack;
+    flags _flags;
     bool _halted;
 };
 
