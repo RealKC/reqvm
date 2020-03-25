@@ -3,3 +3,5 @@
 
 assembler/obj/**
 vm/obj/**
+
+*.exe
