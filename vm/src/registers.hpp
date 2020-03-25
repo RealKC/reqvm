@@ -46,7 +46,7 @@ public:
         _program_counter = address;
     }
 
-    auto sp() noexcept -> const std::uint64_t& {
+    auto sp() noexcept -> std::uint64_t& {
         return _stack_pointer;
     }
 private:
