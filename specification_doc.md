@@ -4,7 +4,8 @@ reqvm is a register based bytecode VM.
 
 Floating point won't be supported for a while.
 
-There will be a stack, but an exact design for it has not been decided yet.
+reqvm has a 8MiB stack, however the operations work on 8-byte integers, as such you can store
+1'048'576 values on it.
 
 ## Binaries
 
