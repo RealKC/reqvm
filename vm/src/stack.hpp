@@ -3,8 +3,17 @@
 #include "registers.hpp"
 
 #include <cstdint>
+#include <stdexcept>
 
 namespace reqvm {
+
+class stack_error : public std::runtime_error {
+public:
+    stack_error(const char* what_arg)
+        : runtime_error(what_arg) {}
+    
+    virtual ~stack_error() noexcept = default;
+};
 
 class stack final {
 public:

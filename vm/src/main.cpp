@@ -50,6 +50,10 @@ auto main() -> int try {
         "https://github.com/RealKC/reqvm/issues as this is not meant to happen.\n");
     std::printf("e.what(): %s\n", e.what());
     return EXIT_FAILURE;
+} catch (const reqvm::stack_error& e) {
+    std::puts(panic);
+    std::puts("reqvm has detected an illegal manipulation of the stack\n");
+    std::printf("e.what(): %s\n", e.what());
 } catch (const std::exception& e) {
     std::puts(panic);
     std::puts("reqvm has encountered an error during the execution of your program.\n");
