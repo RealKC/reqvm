@@ -12,7 +12,7 @@ Binaries start with a 256 byte preamble. I've no idea if I'll ever fill this up,
 
 ### Preamble format
 
-Binaries will start with the following magic byte string `!reqvm;ZA WARUDO! TOKI WO TOMARE!\n`.  
+Binaries will start with the following magic byte string `!reqvm;VSszMEI2VSszMEVGVSszMEZDVSszMEVCVSszMEM5VSswMDIxVSs2NjQyVSszMDg4VSs2QjYyVSszMDdFVSszMDhDVSswMDIx\n`.  
 Then a string of bytes following this format: `!<major>;<minor>;<patch>;<enabled features>;`. `major`, `minor`, and `patch` are 2-byte numbers. `enabled features` is a string of bytes, every byte represents an individual optional feature, and the presence of the byte enables it.  
 This is padded with `noop`s until 256 bytes have been reached.
 
