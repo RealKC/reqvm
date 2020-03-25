@@ -3,7 +3,7 @@ NAME= vm
 
 CC= g++
 CFLAGS= -std=c++17 -Wall -Wextra -fexceptions
-# LDFLAGS= 
+LDFLAGS= 
 
 SRCDIR= src
 OBJDIR= obj
@@ -14,8 +14,8 @@ rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(su
 SRC = $(call rwildcard,$(SRCDIR),*.cpp)
 OBJ = $(SRC:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 
-$(warning $(OBJ))
-$(warning $(SRC))
+#$(warning $(OBJ))
+#$(warning $(SRC))
 
 DEBUG = no
 ifeq ($(DEBUG), yes)
@@ -40,6 +40,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 		@sed -e 's|.*:|$(OBJDIR)/$*.o:|' < $(OBJDIR)/$*.d.tmp > $(OBJDIR)/$*.d
 		@sed -e 's/.*://' -e 's/\\$$//' < $(OBJDIR)/$*.d.tmp | fmt -1 | \
 			sed -e 's/^ *//' -e 's/$$/:/' >> $(OBJDIR)/$*.d
+		@sed -i '/\\\:/d' $(OBJDIR)/$*.d
 		@rm -f $(OBJDIR)/$*.d.tmp
 
 .PHONY: clean

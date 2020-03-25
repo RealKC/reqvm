@@ -36,6 +36,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 		@sed -e 's|.*:|$(OBJDIR)/$*.o:|' < $(OBJDIR)/$*.d.tmp > $(OBJDIR)/$*.d
 		@sed -e 's/.*://' -e 's/\\$$//' < $(OBJDIR)/$*.d.tmp | fmt -1 | \
 			sed -e 's/^ *//' -e 's/$$/:/' >> $(OBJDIR)/$*.d
+		@sed -i '/\\\:/d' $(OBJDIR)/$*.d
 		@rm -f $(OBJDIR)/$*.d.tmp
 
 .PHONY: clean
