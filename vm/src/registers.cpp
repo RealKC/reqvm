@@ -1,8 +1,11 @@
 #include "registers.hpp"
 #include "exceptions.hpp"
+
+#include "../../common/unreachable.hpp"
+
 namespace reqvm {
 
-auto registers::parse_from_byte(std::uint8_t byte) noexcept -> registers::tag {
+auto registers::parse_from_byte(std::uint8_t byte) -> registers::tag {
     const auto reg = static_cast<common::registers>(byte);
 
     if (reg == common::registers::sp) {
@@ -40,7 +43,7 @@ auto registers::parse_from_byte(std::uint8_t byte) noexcept -> registers::tag {
     };
 }
 
-auto registers::operator[](registers::tag tag) noexcept -> std::uint64_t& {
+auto registers::operator[](registers::tag tag) -> std::uint64_t& {
     switch (tag.kind) {
     case registers::tag::kind::pc:
         return _program_counter;
@@ -53,9 +56,7 @@ auto registers::operator[](registers::tag tag) noexcept -> std::uint64_t& {
     case registers::tag::kind::ifa:
         return _integer_functions_args[tag.idx];
     default:
-        // Should not be reached
-        // TODO: make a macro to tell that to the compiler
-        throw 0; // for now we just throw
+        UNREACHABLE("register::operator[]: switch was not actually exhaustive.");
     }
 }
 

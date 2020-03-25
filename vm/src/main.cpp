@@ -2,6 +2,8 @@
 #include <cstdio>
 #include <memory>
 
+#include "../../common/unreachable.hpp"
+
 #include "exceptions.hpp"
 #include "vm.hpp"
 
@@ -58,6 +60,14 @@ auto main() -> int try {
     std::puts(panic);
     std::puts("reqvm has an ecountered an issue with the format of your binary.");
     std::printf("e.what(): %s\n", e.what());
+#ifndef NDEBUG
+} catch (const common::unreachable_code_reached& e) {
+    std::puts(panic);
+    std::puts(
+        "reqvm has detected a critical issue in its code. Please file an issue"
+        " at https://github.com/RealKC/reqvm/issues .\n");
+    std::printf("e.what(): %s\n", e.what());
+#endif
 } catch (const std::exception& e) {
     std::puts(panic);
     std::puts("reqvm has encountered an error during the execution of your program.\n");
