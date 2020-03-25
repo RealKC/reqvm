@@ -13,7 +13,7 @@ static constexpr auto panic = R"(
     \  /  | |  | | | |  | (_| | | | | | (__ 
      \/   |_|  |_| |_|   \__,_|_| |_|_|\___|
                                             
-   
+
 )";
 
 auto main() -> int try {
