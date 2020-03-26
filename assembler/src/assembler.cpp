@@ -421,12 +421,13 @@ auto assembler::emit_pushc(const std::string& line) -> void {
     auto num_candidate = std::string{line.begin() + num_start, line.end()};
     try {
         auto the_num = std::stoull(num_candidate, nullptr);
-        output.push_back(static_cast<std::uint8_t>(common::opcode::pushc));
+        _output.push_back(static_cast<std::uint8_t>(common::opcode::pushc));
         while (the_num) {
-            auto hi = the_num >> 56;
-            output.push_back(static_cast<std::uint8_t>(hi));
+            auto hi = the_num >> 8;
+            _output.push_back(static_cast<std::uint8_t>(hi));
             the_num <<= 8;
         }
+        _idx += 9;
     } catch (const std::out_of_range& e) {
         // error
     }
@@ -437,13 +438,60 @@ auto assembler::emit_op(
     common::registers r1,
     common::registers r2
 ) -> void {
-    output.push_back(static_cast<std::uint8_t>(op));
+    _output.push_back(static_cast<std::uint8_t>(op));
+    _idx++;
     if (r1 != common::registers::none) {
-        output.push_back(static_cast<std::uint8_t>(r1));
+        _output.push_back(static_cast<std::uint8_t>(r1));
+        _idx++;
         if (r2 != common::registers::none) {
-            output.push_back(static_cast<std::uint8_t>(r2));
+            _output.push_back(static_cast<std::uint8_t>(r2));
+            _idx++;
         }
     }
 } 
+
+
+auto assembler::emit_jump(const std::string& line, std::size_t label_start)
+    -> void {
+    auto jump_kind = std::string {
+        line.begin(),
+        line.begin() + line.find_first_of(' ')
+    };
+    auto op = get_opcode(jump_kind.data(), jump_kind.size());
+    _output.push_back(static_cast<std::uint8_t>(op));
+    auto label = std::string{line.begin() + label_start, line.end()};
+    if (_labels.find(label) == _labels.end()) {
+        auto tmp = _labels[label][0];
+        while (tmp) {
+            auto hi = tmp >> 8;
+            _output.push_back(hi);
+            tmp <<= 8; 
+        }
+    } else {
+        _labels[label] = std::vector<std::uint64_t>{};
+        _labels[label].push_back(0); // this mean we jump ahead and don't have the label yet
+        _labels[label].push_back(_idx);
+    }
+    _idx += 9;
+}
+
+auto assembler::process_label(const std::string& line) -> void {
+    if (line.find_first_of(':') == std::string::npos) {
+        // error
+        return;
+    }
+    auto label_name = std::string{
+        line.begin() + 1,
+        line.begin() + line.find_first_of(':')
+    };
+
+    if (_labels.find(label_name) != _labels.end()) {
+        // error about how label names must not be reused or smth
+        return;
+    }
+
+    _labels[label_name] = std::vector<std::uint64_t>{};
+    _labels[label_name].push_back(_idx);
+}
 
 }
