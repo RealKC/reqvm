@@ -12,7 +12,7 @@ namespace reqvm {
 
 class assembler {
 public:
-    assembler() = default;
+    assembler() = delete;
     assembler(std::string file_name) : _file_name{file_name} {}
     ~assembler() noexcept = default;
 
