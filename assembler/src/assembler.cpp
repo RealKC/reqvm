@@ -1,5 +1,7 @@
 #include "assembler.hpp"
 
+#include "../../common/preamble.hpp"
+
 #include <algorithm>
 #include <cctype>
 #include <cstddef>
@@ -45,7 +47,25 @@ auto assembler::run() -> int {
     if (error) {
         return error;
     }
-    return assemble();
+    _idx = 256;
+    error = assemble();
+    if (!error) {
+        auto binary_name = std::string {
+            _file_name.begin(),
+            _file_name.begin() + _file_name.find_last_of('.')
+        };
+        binary_name += ".reqvm";
+        std::ofstream out{binary_name, std::ios::binary};
+
+        out << common::magic_byte_string;
+        for (auto i = sizeof(common::magic_byte_string); i < 256; i++) {
+            out << char{0};
+        }
+        for (auto i = std::size_t{0}; i < _output.size(); i++) {
+            out << _output[i];
+        }
+    }
+    return error;
 }
 /*
 auto assembler::preprocess() -> int {
@@ -149,7 +169,7 @@ auto assembler::preprocess() -> int {
 }*/
 
 auto assembler::assemble() -> int {
-    std::ifstream file {preprocessed_file};
+    std::ifstream file {_file_name};
 
     std::string line;
     while (std::getline(file, line)) {
@@ -325,13 +345,6 @@ auto assembler::get_register(
         idx++;
     }
 
-#define CASE_GP(n)           \
-    case "gp" #n##_u64:       \
-        return common::registers::gp##n;
-#define CASE_IFA(n)                     \
-    case "ifa" #n##_u64:                 \
-        return common::registers::ifa##n;
-
     auto the_register = std::string{line.begin() + start, line.begin() + idx};
     switch (hash(the_register.c_str(), idx - start)) {
     case "sp"_u64:
@@ -346,6 +359,13 @@ auto assembler::get_register(
         return common::registers::pc;
     case "ire"_u64:
         return common::registers::ire;
+
+#define CASE_GP(n)                       \
+    case "gp" #n##_u64:                  \
+        return common::registers::gp##n;
+#define CASE_IFA(n)                      \
+    case "ifa" #n##_u64:                 \
+        return common::registers::ifa##n;
     CASE_GP(00)
     CASE_GP(01)
     CASE_GP(02)
@@ -427,7 +447,7 @@ auto assembler::get_register(
     CASE_IFA(14)
     CASE_IFA(15)
 #undef CASE_GP
-#undef CAsE_IFA
+#undef CASE_IFA
     default:
         return common::registers::none;
         // report an error
