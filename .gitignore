@@ -3,4 +3,6 @@
 assembler/obj/**
 vm/obj/**
 
+# ignore binary files
 *.exe
+*.reqvm
