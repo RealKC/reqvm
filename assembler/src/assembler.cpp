@@ -163,13 +163,11 @@ auto assembler::assemble() -> int {
             switch (auto op = get_opcode(line, idx); op) {
             case opcode::noop:
             case opcode::ret:
+            case opcode::halt:
                 emit_op(op);
                 break;
 
             // All the one operand opcodes
-            case opcode::call:
-                emit_call(line, idx);
-                break;
             case opcode::push: {
                 auto r1 = get_register(line, idx, false);
                 emit_op(op, r1);
@@ -204,6 +202,7 @@ auto assembler::assemble() -> int {
             }
 
             // All the jumps
+            case opcode::call: // a call is just a fancy jump
             case opcode::jmp:
             case opcode::jeq:
             case opcode::jneq:
@@ -211,11 +210,9 @@ auto assembler::assemble() -> int {
             case opcode::jleq:
             case opcode::jg:
             case opcode::jgeq: {
-                // we'll figure this at the right time
-            }
-
-            case opcode::halt: {
-                emit_op(opcode::halt);
+                std::size_t idx = line.find_last_of(' ');
+                idx++;
+                emit_jump(line, idx);
                 break;
             }
 
@@ -289,6 +286,124 @@ auto assembler::get_opcode(const std::string& line, std::size_t len)
         throw 0;
     }
 
+}
+
+auto assembler::get_register(
+    const std::string& line,
+    std::size_t start,
+    bool is_lhs
+) -> common::registers {
+    std::size_t idx = start;
+    while (line[idx] != ' ' && line[idx] != ',') {
+        idx++;
+    }
+
+#define CASE_GP(n)           \
+    case "gp" #n##_u64:       \
+        return common::registers::gp##n;
+#define CASE_IFA(n)                     \
+    case "ifa" #n##_u64:                 \
+        return common::registers::ifa##n;
+
+    auto the_register = std::string{line.begin() + start, line.begin() + idx};
+    switch (hash(the_register.c_str(), idx - start)) {
+    case "sp"_u64:
+        if (is_lhs) {
+            // error
+        }
+        return common::registers::sp;
+    case "pc"_u64:
+        if (is_lhs) {
+            // error
+        }
+        return common::registers::pc;
+    case "ire"_u64:
+        return common::registers::ire;
+    CASE_GP(00)
+    CASE_GP(01)
+    CASE_GP(02)
+    CASE_GP(03)
+    CASE_GP(04)
+    CASE_GP(05)
+    CASE_GP(06)
+    CASE_GP(07)
+    CASE_GP(08)
+    CASE_GP(09)
+    CASE_GP(10)
+    CASE_GP(11)
+    CASE_GP(12)
+    CASE_GP(13)
+    CASE_GP(14)
+    CASE_GP(15)
+    CASE_GP(16)
+    CASE_GP(17)
+    CASE_GP(18)
+    CASE_GP(19)
+    CASE_GP(20)
+    CASE_GP(21)
+    CASE_GP(22)
+    CASE_GP(23)
+    CASE_GP(24)
+    CASE_GP(25)
+    CASE_GP(26)
+    CASE_GP(27)
+    CASE_GP(28)
+    CASE_GP(29)
+    CASE_GP(30)
+    CASE_GP(31)
+    CASE_GP(32)
+    CASE_GP(33)
+    CASE_GP(34)
+    CASE_GP(35)
+    CASE_GP(36)
+    CASE_GP(37)
+    CASE_GP(38)
+    CASE_GP(39)
+    CASE_GP(40)
+    CASE_GP(41)
+    CASE_GP(42)
+    CASE_GP(43)
+    CASE_GP(44)
+    CASE_GP(45)
+    CASE_GP(46)
+    CASE_GP(47)
+    CASE_GP(48)
+    CASE_GP(49)
+    CASE_GP(50)
+    CASE_GP(51)
+    CASE_GP(52)
+    CASE_GP(53)
+    CASE_GP(54)
+    CASE_GP(55)
+    CASE_GP(56)
+    CASE_GP(57)
+    CASE_GP(58)
+    CASE_GP(59)
+    CASE_GP(60)
+    CASE_GP(61)
+    CASE_GP(62)
+    CASE_GP(63)
+    CASE_IFA(00)
+    CASE_IFA(01)
+    CASE_IFA(02)
+    CASE_IFA(03)
+    CASE_IFA(04)
+    CASE_IFA(05)
+    CASE_IFA(06)
+    CASE_IFA(07)
+    CASE_IFA(08)
+    CASE_IFA(09)
+    CASE_IFA(10)
+    CASE_IFA(11)
+    CASE_IFA(12)
+    CASE_IFA(13)
+    CASE_IFA(14)
+    CASE_IFA(15)
+#undef CASE_GP
+#undef CAsE_IFA
+    default:
+        // report an error
+    }
 }
 
 }
