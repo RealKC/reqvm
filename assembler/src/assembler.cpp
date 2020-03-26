@@ -429,6 +429,7 @@ auto assembler::get_register(
 #undef CASE_GP
 #undef CAsE_IFA
     default:
+        return common::registers::none;
         // report an error
     }
 }
