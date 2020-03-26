@@ -1,0 +1,6 @@
+    ; this is just a basic thing to test the assembler
+    pushc 1
+    pushc 2
+    pop gp01
+    pop gp02
+    add gp01, gp02
