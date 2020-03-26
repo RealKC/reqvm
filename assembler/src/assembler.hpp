@@ -18,7 +18,7 @@ public:
 
     // Runs every stage of the assembler over the file
     auto run()        -> int;
-    auto preprocess() -> int;
+    //auto preprocess() -> int;
     auto assemble()   -> int;
 
 private:

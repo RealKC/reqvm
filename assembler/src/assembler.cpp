@@ -39,13 +39,13 @@ static constexpr auto operator""_u64(const char* s, std::size_t l)
 namespace reqvm {
 
 auto assembler::run() -> int {
-    int error = preprocess();
+    int error = 0; // preprocess();
     if (error) {
         return error;
     }
     return assemble();
 }
-
+/*
 auto assembler::preprocess() -> int {
     std::unordered_map<std::string, std::string> macros;
 
@@ -144,7 +144,7 @@ auto assembler::preprocess() -> int {
         }
     }
 
-}
+}*/
 
 auto assembler::assemble() -> int {
     std::ifstream file {preprocessed_file};
