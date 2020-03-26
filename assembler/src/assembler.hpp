@@ -37,7 +37,7 @@ private:
     static auto get_register(const std::string& line, std::size_t start, bool is_lhs) 
         -> common::registers;
 
-    std::vector<char> output;
+    std::vector<std::uint8_t> output;
     std::unordered_map<std::string, std::uint64_t> labels;
     std::string file_name;
     std::string preprocessed_file;
