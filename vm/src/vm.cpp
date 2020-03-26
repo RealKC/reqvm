@@ -31,14 +31,13 @@ auto vm::run() -> int {
 }
 
 auto vm::read_preamble() -> void {
-    std::string mbs_candidate;
-    mbs_candidate.resize(sizeof(common::magic_byte_string));
-    std::copy_n(_binary.begin(), sizeof(common::magic_byte_string), mbs_candidate.begin());
-    if (mbs_candidate != common::magic_byte_string) {
-        throw preamble_error{}; // add a proper exception
+
+    for (auto i = std::size_t{0}; i < sizeof(common::magic_byte_string); i++) {
+        if (_binary[i] != common::magic_byte_string[i]) {
+            throw preamble_error{};
+        }
     }
     // read the version + the features
-
     _regs.jump_to(256);
 }
 
