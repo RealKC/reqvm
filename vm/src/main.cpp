@@ -18,8 +18,12 @@ static constexpr auto panic = R"(
 
 )";
 
-auto main() -> int try {
-    auto the_vm = std::make_unique<reqvm::vm>();
+auto main(int argc, char** argv) -> int try {
+    if (argc < 2) {
+        printf("usage: vm binary.reqvm");
+        return EXIT_SUCCESS;
+    }
+    auto the_vm = std::make_unique<reqvm::vm>(argv[1]);
     return the_vm->run();
 } catch (const reqvm::invalid_opcode& e) {
     std::puts(panic);

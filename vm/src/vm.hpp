@@ -12,6 +12,9 @@ namespace reqvm {
 
 class vm final {
 public:
+    vm() = delete;
+    explicit vm(const std::string& binary);
+    ~vm() noexcept = default;
     auto run() -> int;
 private:
     auto read_preamble() -> void;

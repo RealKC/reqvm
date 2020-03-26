@@ -4,8 +4,23 @@
 #include "../../common/preamble.hpp"
 
 #include <algorithm>
+#include <filesystem>
+#include <fstream>
 
 namespace reqvm {
+
+vm::vm(const std::string& binary) {
+    {
+        namespace fs = std::filesystem;
+        fs::path bin_path{binary};
+        _binary.reserve(fs::file_size(bin_path));
+    }
+    std::ifstream the_binary{binary, std::ios::binary};
+    std::uint8_t in;
+    while (the_binary >> in) {
+        _binary.push_back(in);
+    }
+}
 
 auto vm::run() -> int {
     read_preamble();
@@ -17,7 +32,7 @@ auto vm::run() -> int {
 
 auto vm::read_preamble() -> void {
     std::string mbs_candidate;
-    mbs_candidate.reserve(sizeof(common::magic_byte_string));
+    mbs_candidate.resize(sizeof(common::magic_byte_string));
     std::copy_n(_binary.begin(), sizeof(common::magic_byte_string), mbs_candidate.begin());
     if (mbs_candidate != common::magic_byte_string) {
         throw preamble_error{}; // add a proper exception
