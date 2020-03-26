@@ -1,5 +1,6 @@
 #include "assembler.hpp"
 
+#include <algorithm>
 #include <cctype>
 #include <fstream>
 #include <unordered_map>
@@ -174,7 +175,7 @@ auto assembler::assemble() -> int {
                 break;
             }
             case opcode::pushc: {
-                emit_pushc(line, idx);
+                emit_pushc(line);
                 break;
             }
             case opcode::pop: {
@@ -405,5 +406,44 @@ auto assembler::get_register(
         // report an error
     }
 }
+
+auto assembler::emit_pushc(const std::string& line) -> void {
+    std::string instruction;
+    instruction.resize(6);
+    std::copy_n(line.begin(), 5, instruction.begin());
+    if (instruction != "pushc") {
+        // error
+    }
+
+    std::size_t num_start = 6;
+    while (!isdigit(line[num_start])) { num_start++; }
+
+    auto num_candidate = std::string{line.begin() + num_start, line.end()};
+    try {
+        auto the_num = std::stoull(num_candidate, nullptr);
+        output.push_back(static_cast<std::uint8_t>(common::opcode::pushc));
+        while (the_num) {
+            auto hi = the_num >> 56;
+            output.push_back(static_cast<std::uint8_t>(hi));
+            the_num <<= 8;
+        }
+    } catch (const std::out_of_range& e) {
+        // error
+    }
+}
+
+auto assembler::emit_op(
+    common::opcode op,
+    common::registers r1,
+    common::registers r2
+) -> void {
+    output.push_back(static_cast<std::uint8_t>(op));
+    if (r1 != common::registers::none) {
+        output.push_back(static_cast<std::uint8_t>(r1));
+        if (r2 != common::registers::none) {
+            output.push_back(static_cast<std::uint8_t>(r2));
+        }
+    }
+} 
 
 }
