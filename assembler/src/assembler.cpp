@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstddef>
 #include <fstream>
 #include <unordered_map>
 #include <string>
@@ -152,77 +153,102 @@ auto assembler::assemble() -> int {
 
     std::string line;
     while (std::getline(file, line)) {
-    std::size_t idx = 0;
-        while (idx < line.size()) {
-            using common::opcode;
-            
-            while (line[idx] != ' ') {
-                idx++;
-            }
-            // We can handle multiple opcodes with the same amount of operands at 
-            // the same time 
-            switch (auto op = get_opcode(line, idx); op) {
-            case opcode::noop:
-            case opcode::ret:
-            case opcode::halt:
-                emit_op(op);
+        switch (line[0]) {
+            case '.':
+                process_label(line);
                 break;
-
-            // All the one operand opcodes
-            case opcode::push: {
-                auto r1 = get_register(line, idx, false);
-                emit_op(op, r1);
+            case '\t':
+                process_instruction(line);
                 break;
-            }
-            case opcode::pushc: {
-                emit_pushc(line);
+            case '%':
+                _has_errors = true;
+                // error about running the (currently nonexistant) preprocessor first
                 break;
-            }
-            case opcode::pop: {
-                auto r1 = get_register(line, idx, true);
-                emit_op(op, r1);
+            case ';':
+                // comments get ignored
                 break;
-            }
-
-            // All the two operand opcodes
-            case opcode::add:
-            case opcode::sub:
-            case opcode::mul:
-            case opcode::div:
-            case opcode::mod:
-            case opcode::and_:
-            case opcode::or_:
-            case opcode::xor_:
-            case opcode::lshft:
-            case opcode::rshft:
-            case opcode::cmp: {
-                auto r1 = get_register(line, idx, true);
-                auto r2 = get_register(line, idx, false);
-                emit_op(op, r1, r2);
-                break;
-            }
-
-            // All the jumps
-            case opcode::call: // a call is just a fancy jump
-            case opcode::jmp:
-            case opcode::jeq:
-            case opcode::jneq:
-            case opcode::jl:
-            case opcode::jleq:
-            case opcode::jg:
-            case opcode::jgeq: {
-                std::size_t idx = line.find_last_of(' ');
-                idx++;
-                emit_jump(line, idx);
-                break;
-            }
-
             default:
-                // TODO: spew error better
-                throw 0;
-            }
+                // generic error i guess
+                break;
         }
+        
     }
+    if (_has_errors) {
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+
+auto assembler::process_instruction(const std::string& line) -> void {
+    std::size_t idx = 0;
+    
+    while (line[idx] != ' ') {
+        idx++;
+    }
+    // We can handle multiple opcodes with the same amount of operands at 
+    // the same time 
+    using common::opcode;
+    switch (auto op = get_opcode(line, idx); op) {
+    case opcode::noop:
+    case opcode::ret:
+    case opcode::halt:
+        emit_op(op);
+        break;
+
+    // All the one operand opcodes
+    case opcode::push: {
+        auto r1 = get_register(line, idx, false);
+        emit_op(op, r1);
+        break;
+    }
+    case opcode::pushc: {
+        emit_pushc(line);
+        break;
+    }
+    case opcode::pop: {
+        auto r1 = get_register(line, idx, true);
+        emit_op(op, r1);
+        break;
+    }
+
+    // All the two operand opcodes
+    case opcode::add:
+    case opcode::sub:
+    case opcode::mul:
+    case opcode::div:
+    case opcode::mod:
+    case opcode::and_:
+    case opcode::or_:
+    case opcode::xor_:
+    case opcode::lshft:
+    case opcode::rshft:
+    case opcode::cmp: {
+        auto r1 = get_register(line, idx, true);
+        auto r2 = get_register(line, idx, false);
+        emit_op(op, r1, r2);
+        break;
+    }
+
+    // All the jumps
+    case opcode::call: // a call is just a fancy jump
+    case opcode::jmp:
+    case opcode::jeq:
+    case opcode::jneq:
+    case opcode::jl:
+    case opcode::jleq:
+    case opcode::jg:
+    case opcode::jgeq: {
+        std::size_t idx = line.find_last_of(' ');
+        idx++;
+        emit_jump(line, idx);
+        break;
+    }
+
+    default:
+        // TODO: spew error better
+        throw 0;
+    }
+
 }
 
 auto assembler::get_opcode(const std::string& line, std::size_t len) 

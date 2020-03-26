@@ -22,14 +22,15 @@ public:
     auto assemble()   -> int;
 
 private:
-    auto emit_label() -> void;
+    auto process_instruction(const std::string& line) -> void;
+    auto process_label(const std::string& line) -> void;
+    
     auto emit_op(
         common::opcode op,
         common::registers r1 = common::registers::none,
         common::registers r2 = common::registers::none) -> void;
     auto emit_pushc(const std::string& line) -> void;
     auto emit_jump(const std::string& line, std::size_t label_start) -> void;
-    auto process_label(const std::string& line) -> void;
     auto emit_labels() -> void;
 
     static auto get_opcode(const std::string& line, std::size_t len) 
@@ -44,6 +45,7 @@ private:
     std::uint64_t _idx {0};
     std::string _file_name;
     std::string preprocessed_file;
+    bool _has_errors {false};
 };
 
 }
