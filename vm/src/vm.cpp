@@ -1,7 +1,7 @@
-#include "exceptions.hpp"
 #include "vm.hpp"
 
 #include "../../common/preamble.hpp"
+#include "exceptions.hpp"
 
 #include <algorithm>
 #include <filesystem>
@@ -12,10 +12,10 @@ namespace reqvm {
 vm::vm(const std::string& binary) {
     {
         namespace fs = std::filesystem;
-        fs::path bin_path{binary};
+        fs::path bin_path {binary};
         _binary.reserve(fs::file_size(bin_path));
     }
-    std::ifstream the_binary{binary, std::ios::binary};
+    std::ifstream the_binary {binary, std::ios::binary};
     std::uint8_t in;
     while (the_binary >> in) {
         _binary.push_back(in);
@@ -31,47 +31,44 @@ auto vm::run() -> int {
 }
 
 auto vm::read_preamble() -> void {
-
-    for (auto i = std::size_t{0}; i < sizeof(common::magic_byte_string); i++) {
+    for (auto i = std::size_t {0}; i < sizeof(common::magic_byte_string); i++) {
         if (_binary[i] != common::magic_byte_string[i]) {
-            throw preamble_error{};
+            throw preamble_error {};
         }
     }
     // read the version + the features
     _regs.jump_to(256);
 }
 
-#define CHECK_LHS_REG(opcode, reg)                                      \
-    do {                                                                \
-        if (registers::is_error_on_lhs((reg))) {                        \
-            throw reqvm::invalid_register {                             \
-                "Invalid lhs operand for opcode '" #opcode "': ",       \
-                static_cast<common::registers>(_binary[_regs.pc() + 1]) \
-            };                                                          \
-        }                                                               \
+auto vm::cycle(common::opcode op) -> void {
+#define CHECK_LHS_REG(opcode, reg)                                             \
+    do {                                                                       \
+        if (registers::is_error_on_lhs((reg))) {                               \
+            throw reqvm::invalid_register {                                    \
+                "Invalid lhs operand for opcode '" #opcode "': ",              \
+                static_cast<common::registers>(_binary[_regs.pc() + 1])};      \
+        }                                                                      \
     } while (0)
 
-#define MAKE_8_BYTE_VAL(val)                                             \
-    auto val = static_cast<std::uint64_t>(_binary[_regs.pc() + 1]) << 56 \
-            | static_cast<std::uint64_t>(_binary[_regs.pc() + 2]) << 48  \
-            | static_cast<std::uint64_t>(_binary[_regs.pc() + 3]) << 40  \
-            | static_cast<std::uint64_t>(_binary[_regs.pc() + 4]) << 32  \
-            | static_cast<std::uint64_t>(_binary[_regs.pc() + 5]) << 24  \
-            | static_cast<std::uint64_t>(_binary[_regs.pc() + 6]) << 16  \
-            | static_cast<std::uint64_t>(_binary[_regs.pc() + 7]) << 8   \
-            | static_cast<std::uint64_t>(_binary[_regs.pc() + 8])
+#define MAKE_8_BYTE_VAL(val)                                                   \
+    auto val = static_cast<std::uint64_t>(_binary[_regs.pc() + 1]) << 56       \
+               | static_cast<std::uint64_t>(_binary[_regs.pc() + 2]) << 48     \
+               | static_cast<std::uint64_t>(_binary[_regs.pc() + 3]) << 40     \
+               | static_cast<std::uint64_t>(_binary[_regs.pc() + 4]) << 32     \
+               | static_cast<std::uint64_t>(_binary[_regs.pc() + 5]) << 24     \
+               | static_cast<std::uint64_t>(_binary[_regs.pc() + 6]) << 16     \
+               | static_cast<std::uint64_t>(_binary[_regs.pc() + 7]) << 8      \
+               | static_cast<std::uint64_t>(_binary[_regs.pc() + 8])
 
 #define CHECK_AT_LEAST_8_BYTES(opcode)                                         \
     if (_binary.size() - _regs.pc() < 8) {                                     \
         throw bad_argument {                                                   \
-            "Opcode '" #opcode "c' is the last opcode in your binary and after"\
+            "Opcode '" #opcode                                                 \
+            "c' is the last opcode in your binary and after"                   \
             " it there are less than 8 bytes, as such it is not possible to "  \
-            "build its argument."                                              \
-        };                                                                     \
+            "build its argument."};                                            \
     }
 
-
-auto vm::cycle(common::opcode op) -> void {
     using common::opcode;
     switch (op) {
     case opcode::noop: {
@@ -162,8 +159,7 @@ auto vm::cycle(common::opcode op) -> void {
         if (registers::is_error_on_lhs(r1)) {
             throw invalid_register {
                 "Invalid operand for opcode 'not': ",
-                static_cast<common::registers>(_binary[_regs.pc() + 1])
-            };
+                static_cast<common::registers>(_binary[_regs.pc() + 1])};
         }
         _regs[r1] = ~_regs[r1];
         _regs.advance_pc(2);
@@ -203,8 +199,7 @@ auto vm::cycle(common::opcode op) -> void {
         if (registers::is_error_on_lhs(r1)) {
             throw invalid_register {
                 "Invalid operand for opcode 'pop': ",
-                static_cast<common::registers>(_binary[_regs.pc() + 1])
-            };
+                static_cast<common::registers>(_binary[_regs.pc() + 1])};
         }
         _regs[r1] = _stack.pop(_regs);
         _regs.advance_pc(2);
@@ -266,7 +261,7 @@ auto vm::cycle(common::opcode op) -> void {
         }
         break;
     }
-    case opcode::jleq: { 
+    case opcode::jleq: {
         CHECK_AT_LEAST_8_BYTES(jleq)
         // TODO: check the condition for jumping
         if (_flags.cmp_flag == U64(flags::cf::less)
@@ -308,10 +303,9 @@ auto vm::cycle(common::opcode op) -> void {
     }
     }
 
-}
-
 #undef CHECK_LHS_REG
 #undef MAKE_8_BYTE_VAL
 #undef CHECK_AT_LEAST_8_BYTES
-
 }
+
+}   // namespace reqvm

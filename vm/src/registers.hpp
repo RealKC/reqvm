@@ -1,9 +1,9 @@
 #pragma once
 
+#include "../../common/registers.hpp"
+
 #include <array>
 #include <cstdint>
-
-#include "../../common/registers.hpp"
 
 namespace reqvm {
 
@@ -49,6 +49,7 @@ public:
     auto sp() noexcept -> std::uint64_t& {
         return _stack_pointer;
     }
+
 private:
     std::array<std::uint64_t, 64> _general_purpose;
     std::array<std::uint64_t, 16> _integer_functions_args;
@@ -57,4 +58,4 @@ private:
     std::uint64_t _integer_return;
 };
 
-}
+}   // namespace reqvm

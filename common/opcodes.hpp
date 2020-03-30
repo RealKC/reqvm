@@ -4,9 +4,9 @@ namespace common {
 
 // this enum represent all the opcodes of reqvm
 enum class opcode : unsigned char {
-    noop  = 0,
-    call  = 1,
-    ret   = 2,
+    noop = 0,
+    call = 1,
+    ret  = 2,
 
     // Integer arithmetics
     add   = 20,
@@ -20,23 +20,23 @@ enum class opcode : unsigned char {
     not_  = 28,
     lshft = 29,
     rshft = 30,
-     
+
     // Stack operations
     push  = 35,
     pushc = 36,
     pop   = 37,
 
-    // Branching 
-    cmp   = 42,
-    jmp   = 43,
-    jeq   = 44,
-    jneq  = 45,
-    jl    = 46,
-    jleq  = 47,
-    jg    = 48,
-    jgeq  = 49,
+    // Branching
+    cmp  = 42,
+    jmp  = 43,
+    jeq  = 44,
+    jneq = 45,
+    jl   = 46,
+    jleq = 47,
+    jg   = 48,
+    jgeq = 49,
 
     halt = 255,
 };
 
-}
+}   // namespace common

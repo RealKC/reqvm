@@ -1,51 +1,51 @@
-#pragma once 
+#pragma once
 
 #include <cstdint>
 
 namespace common {
 
-enum class registers : std::uint8_t{
-    none =  0,
-    pc   =  1,
-    sp   =  2,
+enum class registers : std::uint8_t {
+    none = 0,
+    pc   = 1,
+    sp   = 2,
 
     // general purpose registers
-    gp00 =  64,
-    gp01 =  65,
-    gp02 =  66,
-    gp03 =  67,
-    gp04 =  68,
-    gp05 =  69,
-    gp06 =  70,
-    gp07 =  71,
-    gp08 =  72,
-    gp09 =  73,
-    gp10 =  74,
-    gp11 =  75,
-    gp12 =  76,
-    gp13 =  77,
-    gp14 =  78,
-    gp15 =  79,
-    gp16 =  80,
-    gp17 =  81,
-    gp18 =  82,
-    gp19 =  83,
-    gp20 =  84,
-    gp21 =  85,
-    gp22 =  86,
-    gp23 =  87,
-    gp24 =  88,
-    gp25 =  89,
-    gp26 =  90,
-    gp27 =  91,
-    gp28 =  92,
-    gp29 =  93,
-    gp30 =  94,
-    gp31 =  95,
-    gp32 =  96,
-    gp33 =  97,
-    gp34 =  98,
-    gp35 =  99,
+    gp00 = 64,
+    gp01 = 65,
+    gp02 = 66,
+    gp03 = 67,
+    gp04 = 68,
+    gp05 = 69,
+    gp06 = 70,
+    gp07 = 71,
+    gp08 = 72,
+    gp09 = 73,
+    gp10 = 74,
+    gp11 = 75,
+    gp12 = 76,
+    gp13 = 77,
+    gp14 = 78,
+    gp15 = 79,
+    gp16 = 80,
+    gp17 = 81,
+    gp18 = 82,
+    gp19 = 83,
+    gp20 = 84,
+    gp21 = 85,
+    gp22 = 86,
+    gp23 = 87,
+    gp24 = 88,
+    gp25 = 89,
+    gp26 = 90,
+    gp27 = 91,
+    gp28 = 92,
+    gp29 = 93,
+    gp30 = 94,
+    gp31 = 95,
+    gp32 = 96,
+    gp33 = 97,
+    gp34 = 98,
+    gp35 = 99,
     gp36 = 100,
     gp37 = 101,
     gp38 = 102,
@@ -76,7 +76,7 @@ enum class registers : std::uint8_t{
     gp63 = 127,
 
     // Registers related to functions
-    ire   = 128,
+    ire = 128,
 
     ifa00 = 132,
     ifa01 = 133,
@@ -120,4 +120,4 @@ constexpr bool operator>=(registers lhs, registers rhs) noexcept {
     return !(lhs < rhs);
 }
 
-}
+}   // namespace common

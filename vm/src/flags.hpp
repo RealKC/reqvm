@@ -12,7 +12,7 @@ struct flags {
     };
 
     std::uint64_t cmp_flag : 2;
-    std::uint64_t reserved  : 62;
+    std::uint64_t reserved : 62;
 };
 
-}
+}   // namespace reqvm

@@ -16,6 +16,7 @@ public:
     explicit vm(const std::string& binary);
     ~vm() noexcept = default;
     auto run() -> int;
+
 private:
     auto read_preamble() -> void;
     auto cycle(common::opcode op) -> void;
@@ -27,4 +28,4 @@ private:
     bool _halted;
 };
 
-}
+}   // namespace reqvm

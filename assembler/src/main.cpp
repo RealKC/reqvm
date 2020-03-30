@@ -1,10 +1,9 @@
 #include "assembler.hpp"
 
-#include <memory>
 #include <cstdio>
+#include <memory>
 
-
-int main(int argc, const char** argv) {
+int main(int argc, char** argv) {
     if (argc < 2) {
         printf("Usage: assembler file (temp)");
     }
