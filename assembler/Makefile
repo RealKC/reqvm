@@ -13,7 +13,7 @@ rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(su
 SRC = $(call rwildcard,$(SRCDIR),*.cpp)
 OBJ = $(SRC:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 
-DEBUG = no
+DEBUG = yes
 ifeq ($(DEBUG), yes)
 	CFLAGS += -O0 -g
 else

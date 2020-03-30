@@ -17,7 +17,7 @@ OBJ = $(SRC:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 #$(warning $(OBJ))
 #$(warning $(SRC))
 
-DEBUG = no
+DEBUG = yes
 ifeq ($(DEBUG), yes)
 	CFLAGS += -O0 -g
 else
