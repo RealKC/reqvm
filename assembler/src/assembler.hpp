@@ -1,51 +1,61 @@
 #pragma once
 
-#include <cstddef>
-#include <string>
-#include <vector>
-#include <unordered_map>
-
 #include "../../common/opcodes.hpp"
 #include "../../common/registers.hpp"
+
+#include <cstdint>
+#include <fstream>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace reqvm {
 
 class assembler {
 public:
-    assembler() = delete;
-    assembler(std::string file_name) : _file_name{file_name} {}
+    explicit assembler(const std::string& filename);
     ~assembler() noexcept = default;
 
-    // Runs every stage of the assembler over the file
-    auto run()        -> int;
-    //auto preprocess() -> int;
-    auto assemble()   -> int;
+    auto has_errors() const noexcept -> bool {
+        return _has_errors;
+    }
+
+    auto run() -> int;
 
 private:
-    auto process_instruction(const std::string& line) -> void;
-    auto process_label(const std::string& line) -> void;
-    
-    auto emit_op(
-        common::opcode op,
-        common::registers r1 = common::registers::none,
-        common::registers r2 = common::registers::none) -> void;
-    auto emit_pushc(const std::string& line) -> void;
-    auto emit_jump(const std::string& line, std::size_t label_start) -> void;
-    auto emit_labels() -> void;
+    static auto get_label(const std::string& line) -> std::string;
+    static auto get_opcode(const std::string& line) -> common::opcode;
+    static auto parse_register(const std::string& name) -> common::registers;
+    static auto get_register(const std::string& line) -> common::registers;
+    static auto get_register_pair(const std::string& line)
+        -> std::pair<common::registers, common::registers>;
+    static auto is_read_only(common::registers reg) noexcept -> bool;
 
-    static auto get_opcode(const std::string& line, std::size_t len) 
-        -> common::opcode;
-    static auto get_register(const std::string& line, std::size_t start, bool is_lhs) 
-        -> common::registers;
+    enum class opcode_category {
+        nullary,
+        unary_register,
+        unary_label,
+        unary_constant,
+        binary_registers,
+    };
+    static auto get_category(common::opcode op) -> opcode_category;
 
-    std::vector<std::uint8_t> _output;
-    // Note that the first element of the vector is the address of the label
-    // itself
+    auto write_preamble() -> void;
+    auto emit(common::opcode op) -> void;
+    auto emit(common::opcode op, std::string label) -> void;
+    auto emit(common::opcode op, common::registers reg) -> void;
+    auto emit(common::opcode op, std::uint64_t num) -> void;
+    auto emit(common::opcode op,
+              std::pair<common::registers, common::registers> regs) -> void;
+    auto emit_remaining_labels() -> void;
+
+    std::ifstream _file;
+    std::ofstream _out;
+    std::string _output_name;
     std::unordered_map<std::string, std::vector<std::uint64_t>> _labels;
-    std::uint64_t _idx {0};
-    std::string _file_name;
-    std::string preprocessed_file;
+    std::uint64_t _pc {256};
     bool _has_errors {false};
 };
 
-}
+}   // namespace reqvm
