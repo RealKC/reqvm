@@ -8,6 +8,8 @@ enum class opcode : unsigned char {
     call = 1,
     ret  = 2,
 
+    // Metainstruction
+    io = 10,
     // Integer arithmetics
     add   = 20,
     sub   = 21,
@@ -37,6 +39,13 @@ enum class opcode : unsigned char {
     jgeq = 49,
 
     halt = 255,
+};
+
+enum class io_op : unsigned char {
+    getc  = 1,
+    putc  = 2,
+    put8c = 3,
+    putn  = 4,
 };
 
 }   // namespace common

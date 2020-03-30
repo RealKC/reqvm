@@ -30,6 +30,7 @@ private:
     static auto get_register(const std::string& line) -> common::registers;
     static auto get_register_pair(const std::string& line)
         -> std::pair<common::registers, common::registers>;
+    static auto get_io_op(const std::string& line) -> common::io_op;
     static auto is_read_only(common::registers reg) noexcept -> bool;
 
     enum class opcode_category {
@@ -38,6 +39,7 @@ private:
         unary_label,
         unary_constant,
         binary_registers,
+        binary_byte_then_register,
     };
     static auto get_category(common::opcode op) -> opcode_category;
 
@@ -48,6 +50,8 @@ private:
     auto emit(common::opcode op, std::uint64_t num) -> void;
     auto emit(common::opcode op,
               std::pair<common::registers, common::registers> regs) -> void;
+    auto emit(common::opcode op, common::io_op subop, common::registers reg)
+        -> void;
     auto emit_remaining_labels() -> void;
 
     std::ifstream _file;

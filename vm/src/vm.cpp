@@ -2,6 +2,7 @@
 
 #include "../../common/preamble.hpp"
 #include "exceptions.hpp"
+#include "io.hpp"
 
 #include <algorithm>
 #include <filesystem>
@@ -88,6 +89,37 @@ auto vm::cycle(common::opcode op) -> void {
     case opcode::ret: {
         auto ret_addr = _stack.pop(_regs);
         _regs.jump_to(ret_addr);
+        break;
+    }
+    case opcode::io: {
+        using common::io_op;
+        switch (io::parse_from_byte(_binary[_regs.pc() + 1])) {
+        case io_op::getc: {
+            auto reg = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+            if (registers::is_error_on_lhs(reg)) {
+                throw invalid_register {
+                    "Invalid lhs register for opcode 'io getc':",
+                    static_cast<common::registers>(_binary[_regs.pc() + 2])};
+            }
+            _regs[reg] = io::getc();
+            break;
+        }
+        case io_op::putc: {
+            auto reg = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+            io::putc(_regs[reg]);
+            break;
+        }
+        case io_op::put8c: {
+            auto reg = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+            io::put8c(_regs[reg]);
+            break;
+        }
+        case io_op::putn: {
+            auto reg = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+            io::putn(_regs[reg]);
+            break;
+        }
+        }
         break;
     }
     case opcode::add: {

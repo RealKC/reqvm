@@ -35,11 +35,12 @@ All registers will be 64bit. List of registers:
 
 ## Instruction table
 
-| opcode(byte) | mnemonic(?) | instruction | what it does |
+| opcode(byte) | mnemonic | instruction | notes |
 |:------:|----------|-------------|------------|
 |   `00`   | `noop` | `noop` | is a noop |
 |   `01`   | `call` | `call func_name` | calls the function `func_name` |
 |   `02`   | `ret` | `ret` | returns from a function, performing necessary cleanup |
+|   `10`   | `io` | `io op reg` | the `io` metainstruction expect a 1-byte argument after it called the `op` which represent the I/O operation to be performed. See [I/O operations](#I/O-Operations) |
 |   `20`   | `add` | `add r1, r2` | adds `r1` and `r2`, stores result in `r1`|
 |   `21`   | `sub` | `sub r1, r2`| subtract `r2` from `r1`, stores result in `r1`|
 |   `22`   | `mul` | `mul r1, r2` | multiplies `r1` by `r2`, stores result in `r1`|
@@ -62,4 +63,13 @@ All registers will be 64bit. List of registers:
 |   `47`   | `jleq` | `jleq label` | if `CF == cf::less` or `CF == cf::eq`, jumps to `label` |
 |   `48`   | `jg` | `jg label` | if `CF == cf::gr`, jumps to `label` |
 |   `49`   | `jgeq` | `jgeq label` | if `CF == cf::gr` or `CF == cf::eq`, jumps to `label`
-|   `255`  | `halt` | `halt` | stops program execution, and the VM, returning the value in `ire` to the OS |
+|   `255`  | `halt` | `halt` | stops program execution, and the VM, returning the value in `ire` to the OS |  
+
+### I/O Operations
+
+|byte|mnemonic|argument|notes|
+|---|---------|--------|-----|
+|`01`|`getc`|a register |gets a character from stdin and stores it in the register passed as argument|
+|`02`|`putc`|a register|interprets the register given as argument as an **8-bit** character and outputs it to stdout|
+|`03`|`put8c`|a register|interprets the register as a string of 8 **8-bit** characters and outputs them to stdout|
+|`04`|`putn`|a register|interprets the register as a **64-bit** number and outputs it to stdout|
