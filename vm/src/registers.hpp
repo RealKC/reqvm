@@ -23,6 +23,9 @@ public:
     static auto parse_from_byte(std::uint8_t byte) -> tag;
     static auto is_error_on_lhs(tag reg) noexcept -> bool;
 
+    registers() noexcept;
+    ~registers() noexcept = default;
+
     auto operator[](tag reg) -> std::uint64_t&;
 
     auto general_purpose() noexcept -> std::array<std::uint64_t, 64>& {

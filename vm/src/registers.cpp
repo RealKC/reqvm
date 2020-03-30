@@ -5,6 +5,16 @@
 
 namespace reqvm {
 
+registers::registers() noexcept
+    : _program_counter {0}, _stack_pointer {0}, _integer_return {0} {
+    for (auto& elem : _general_purpose) {
+        elem = 0;
+    }
+    for (auto& elem : _integer_functions_args) {
+        elem = 0;
+    }
+}
+
 auto registers::parse_from_byte(std::uint8_t byte) -> registers::tag {
     const auto reg = static_cast<common::registers>(byte);
 
