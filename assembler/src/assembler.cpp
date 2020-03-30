@@ -43,6 +43,7 @@ assembler::assembler(const std::string& filename) : _file {filename} {
 
 auto assembler::run() -> int {
     std::string line;
+    write_preamble();
     while (std::getline(_file, line)) {
         switch (line[0]) {
         case '%':
@@ -64,6 +65,10 @@ auto assembler::run() -> int {
             break;
         }
         case '\t': {
+            if (line[1] == ';') {
+                // TODO: add function to consume comments
+                break;
+            }
             auto op = get_opcode(line);
             switch (get_category(op)) {
             case opcode_category::nullary:
@@ -342,7 +347,7 @@ auto assembler::get_category(common::opcode op) -> opcode_category {
         return opcode_category::binary_registers;
     case opcode::io:
         return opcode_category::binary_byte_then_register;
-    default:
+        // default:
         // TOOD: internal assembler error maybe? assert it's not reached?
     }
 }
@@ -404,7 +409,7 @@ auto assembler::get_io_op(const std::string& line) -> common::io_op {
         return io_op::put8c;
     case "putn"_u64:
         return io_op::putn;
-    default:
+        // default:
         // TODO: report some errors
     }
 }
