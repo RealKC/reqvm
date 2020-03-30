@@ -18,7 +18,7 @@ vm::vm(const std::string& binary) {
     }
     std::ifstream the_binary {binary, std::ios::binary};
     std::uint8_t in;
-    while (the_binary >> in) {
+    while (the_binary.read(reinterpret_cast<char*>(&in), 1)) {
         _binary.push_back(in);
     }
 }

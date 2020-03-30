@@ -59,11 +59,13 @@ auto main(int argc, char** argv) -> int try {
     std::puts(panic);
     std::puts("reqvm has detected an illegal manipulation of the stack\n");
     std::printf("e.what(): %s\n", e.what());
+    return EXIT_FAILURE;
 } catch (const reqvm::preamble_error& e) {
     std::puts(panic);
     std::puts(
         "reqvm has an ecountered an issue with the format of your binary.\n");
     std::printf("e.what(): %s\n", e.what());
+    return EXIT_FAILURE;
 } catch (const reqvm::io::error& e) {
     std::puts(panic);
     std::puts("reqvm has encountered an issue during the execution of your "
@@ -71,6 +73,7 @@ auto main(int argc, char** argv) -> int try {
     std::printf("e.what(): %s %#x (%u)\n", e.what(),
                 static_cast<unsigned int>(e.the_invalid_op()),
                 static_cast<unsigned int>(e.the_invalid_op()));
+    return EXIT_FAILURE;
 #ifndef NDEBUG
 } catch (const common::unreachable_code_reached& e) {
     std::puts(panic);
@@ -78,6 +81,7 @@ auto main(int argc, char** argv) -> int try {
         "reqvm has detected a critical issue in its code. Please file an issue"
         " at https://github.com/RealKC/reqvm/issues .\n");
     std::printf("e.what(): %s\n", e.what());
+    return EXIT_FAILURE;
 #endif
 } catch (const std::exception& e) {
     std::puts(panic);
