@@ -1,5 +1,6 @@
 #include "../../common/unreachable.hpp"
 #include "exceptions.hpp"
+#include "io.hpp"
 #include "vm.hpp"
 
 #include <cstddef>
@@ -61,8 +62,15 @@ auto main(int argc, char** argv) -> int try {
 } catch (const reqvm::preamble_error& e) {
     std::puts(panic);
     std::puts(
-        "reqvm has an ecountered an issue with the format of your binary.");
+        "reqvm has an ecountered an issue with the format of your binary.\n");
     std::printf("e.what(): %s\n", e.what());
+} catch (const reqvm::io::error& e) {
+    std::puts(panic);
+    std::puts("reqvm has encountered an issue during the execution of your "
+              "binary.\n");
+    std::printf("e.what(): %s %#x (%u)\n", e.what(),
+                static_cast<unsigned int>(e.the_invalid_op()),
+                static_cast<unsigned int>(e.the_invalid_op()));
 #ifndef NDEBUG
 } catch (const common::unreachable_code_reached& e) {
     std::puts(panic);

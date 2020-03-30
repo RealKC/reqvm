@@ -23,7 +23,7 @@ public:
         : runtime_error {what_arg}, _op {byte} {};
     virtual ~error() noexcept = default;
 
-    auto the_invalid_op() noexcept -> std::uint64_t {
+    auto the_invalid_op() const noexcept -> std::uint64_t {
         return _op;
     }
 
