@@ -130,6 +130,7 @@ auto assembler::run() -> int {
             break;
         }
     }
+    emit(common::opcode::halt);
     return 0;
 }
 
