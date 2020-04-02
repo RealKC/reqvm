@@ -17,3 +17,5 @@ Do not:
 * submit unformatted code
 * write in C
 * submit code that triggers compiler warnings or does not compile
+
+Naming conventions: `snake_case` must be used for functions, names of types and namespaces. `CAPITAL_SNAKE_CASE` must be used for macros. Private variables must have their names starting with an underscore(`_`).
