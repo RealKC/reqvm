@@ -19,6 +19,10 @@ ifeq ($(DEBUG), yes)
 else
 	CFLAGS += -O3
 endif
+AGGRESIVE_LOGGING = yes
+ifeq ($(AGGRESIVE_LOGGING), yes)
+	CFLAGS += -DAGGRESIVE_LOGGING
+endif
 # AUTO VARIABLE DEFINITION
 
 
