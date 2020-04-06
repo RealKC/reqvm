@@ -1,26 +1,26 @@
 /*
-* MIT License
-* 
-* Copyright (c) 2020 Mitca Dumitru
-* 
-* Permission is hereby granted, free of charge, to any person obtaining a copy
-* of this software and associated documentation files (the "Software"), to deal
-* in the Software without restriction, including without limitation the rights
-* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-* copies of the Software, and to permit persons to whom the Software is
-* furnished to do so, subject to the following conditions:
-* 
-* The above copyright notice and this permission notice shall be included in all
-* copies or substantial portions of the Software.
-* 
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-* SOFTWARE.
-*/
+ * MIT License
+ *
+ * Copyright (c) 2020 Mitca Dumitru
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
 #pragma once
 
@@ -115,13 +115,39 @@ public:
     }
 };
 
-class preamble_error : public std::runtime_error {
+class preamble_error : public std::exception {
 public:
-    preamble_error()
-        : runtime_error {"reqvm was unable to start because the preamble of "
-                         "this binary does "
-                         "not follow the standard preamble format."} {}
+    enum class kind : std::uint8_t {
+        version_too_high,
+        nonstandard_mbs,
+        bad_version_serialization,
+        unknown_feature,
+    };
+    explicit preamble_error(kind k) : _kind {k} {}
     virtual ~preamble_error() noexcept = default;
+
+    const char* what() const noexcept override {
+        // PONDER: should this be moved out of line?
+        switch (_kind) {
+        case kind::version_too_high:
+            return "reqvm was unable to start because it is too outdated to "
+                   "run the binary. Please upgrade reqvm.";
+        case kind::nonstandard_mbs:
+            return "reqvm was unable to start because the loaded binary has a "
+                   "magic byte string which does not follow the standard "
+                   "format.";
+        case kind::bad_version_serialization:
+            return "reqvm was unable to start because the version string in "
+                   "the preamble is badly serialised/nonstandard and as such "
+                   "it is not possible to verify instruction set "
+                   "compatibility.";
+        default:
+            return "Unknown preamble error. This is likely an internal VM bug.";
+        }
+    }
+
+private:
+    kind _kind;
 };
 
 }   // namespace reqvm

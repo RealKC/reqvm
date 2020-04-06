@@ -75,40 +75,35 @@ auto vm::read_preamble() -> void {
     std::size_t i {0};
     for (; i < sizeof(common::magic_byte_string); i++) {
         if (_binary[i] != common::magic_byte_string[i]) {
-            throw preamble_error {};
+            throw preamble_error {preamble_error::kind::nonstandard_mbs};
         }
     }
     if (_binary[i] != '!') {
-        // TODO: report a proper error
-        throw preamble_error {};
+        throw preamble_error {preamble_error::kind::bad_version_serialization};
     }
     i++;
     auto major = static_cast<std::uint16_t>(_binary[i]) << 8 | _binary[i + 1];
     i++;
     if (_binary[i] != ';') {
-        // TODO: proper error
-        throw preamble_error {};
+        throw preamble_error {preamble_error::kind::bad_version_serialization};
     }
     i++;
     auto minor = static_cast<std::uint16_t>(_binary[i]) << 8 | _binary[i + 1];
     i++;
     if (_binary[i] != ';') {
-        // TODO: proper error
-        throw preamble_error {};
+        throw preamble_error {preamble_error::kind::bad_version_serialization};
     }
     i++;
     auto patch = static_cast<std::uint16_t>(_binary[i]) << 8 | _binary[i + 1];
     i++;
     if (_binary[i] != ';') {
-        // TODO: proper error
-        throw preamble_error {};
+        throw preamble_error {preamble_error::kind::bad_version_serialization};
     }
     i++;
     if (!::is_version_compatible(major, minor, patch)) {
-        // TODO: proper error
-        throw preamble_error {};
+        throw preamble_error {preamble_error::kind::version_too_high};
     }
-    // read the version + the features
+    // TODO: read ~~the version +~~ :^) the features
     _regs.jump_to(256);
 }
 
