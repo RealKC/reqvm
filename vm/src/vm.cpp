@@ -1,25 +1,25 @@
-/* 
+/*
  *  MIT License
- *  
+ *
  *  Copyright (c) 2020 Mitca Dumitru
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
+ *  of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
- *  The above copyright notice and this permission notice shall be included in all
- *  copies or substantial portions of the Software.
- *  
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- *  SOFTWARE.
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
 #include "vm.hpp"
@@ -31,6 +31,22 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+
+static inline auto is_version_compatible(std::uint16_t major,
+                                         std::uint16_t minor,
+                                         std::uint16_t patch) noexcept -> bool {
+    using namespace common;
+    if (major <= version::major) {
+        return true;
+    }
+    if (minor <= version::minor) {
+        return true;
+    }
+    if (patch <= version::patch) {
+        return true;
+    }
+    return false;
+}
 
 namespace reqvm {
 
@@ -56,10 +72,41 @@ auto vm::run() -> int {
 }
 
 auto vm::read_preamble() -> void {
-    for (auto i = std::size_t {0}; i < sizeof(common::magic_byte_string); i++) {
+    std::size_t i {0};
+    for (; i < sizeof(common::magic_byte_string); i++) {
         if (_binary[i] != common::magic_byte_string[i]) {
             throw preamble_error {};
         }
+    }
+    if (_binary[i] != '!') {
+        // TODO: report a proper error
+        throw preamble_error {};
+    }
+    i++;
+    auto major = static_cast<std::uint16_t>(_binary[i]) << 8 | _binary[i + 1];
+    i++;
+    if (_binary[i] != ';') {
+        // TODO: proper error
+        throw preamble_error {};
+    }
+    i++;
+    auto minor = static_cast<std::uint16_t>(_binary[i]) << 8 | _binary[i + 1];
+    i++;
+    if (_binary[i] != ';') {
+        // TODO: proper error
+        throw preamble_error {};
+    }
+    i++;
+    auto patch = static_cast<std::uint16_t>(_binary[i]) << 8 | _binary[i + 1];
+    i++;
+    if (_binary[i] != ';') {
+        // TODO: proper error
+        throw preamble_error {};
+    }
+    i++;
+    if (!::is_version_compatible(major, minor, patch)) {
+        // TODO: proper error
+        throw preamble_error {};
     }
     // read the version + the features
     _regs.jump_to(256);

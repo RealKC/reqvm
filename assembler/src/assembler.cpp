@@ -26,6 +26,8 @@
 
 #include "../../common/preamble.hpp"
 
+#include <array>
+
 // This is an incredibly dumb hashing functions, we just make the bytes
 // of the string be a std::uint64_t instead.
 // Not cryptographically secure, but we don't need that.
@@ -160,6 +162,22 @@ auto assembler::run() -> int {
 
 auto assembler::write_preamble() -> void {
     _out.write(common::magic_byte_string, sizeof(common::magic_byte_string));
+    std::array<char, 10> version {0};
+    version[0] = '!';
+    version[3] = ';';
+    version[6] = ';';
+    version[9] = ';';
+    {
+        using namespace common;
+        version[1] = static_cast<char>(version::major >> 8);
+        version[2] = static_cast<char>((version::major << 8) >> 8);
+        version[4] = static_cast<char>(version::minor >> 8);
+        version[5] = static_cast<char>((version::minor << 8) >> 8);
+        version[7] = static_cast<char>(version::patch >> 8);
+        version[8] = static_cast<char>((version::patch << 8) >> 8);
+    }
+    _out.write(version.data(), version.size());
+
     const auto nullbyte = '\0';
     for (auto i = sizeof(common::magic_byte_string); i < 256; i++) {
         _out.write(&nullbyte, 1);
