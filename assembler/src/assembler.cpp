@@ -25,8 +25,15 @@
 #include "assembler.hpp"
 
 #include "../../common/preamble.hpp"
+#include "logger.hpp"
 
 #include <array>
+
+#ifdef AGGRESIVE_LOGGING
+#    include <magic_enum.hpp>
+
+using namespace magic_enum::ostream_operators;
+#endif
 
 // This is an incredibly dumb hashing functions, we just make the bytes
 // of the string be a std::uint64_t instead.
@@ -185,6 +192,7 @@ auto assembler::write_preamble() -> void {
 }
 
 auto assembler::emit(common::opcode op) -> void {
+    LOG1(op);
     if (_has_errors) {
         return;
     }
@@ -194,6 +202,7 @@ auto assembler::emit(common::opcode op) -> void {
 }
 
 auto assembler::emit(common::opcode op, common::registers reg) -> void {
+    LOG2(op, reg);
     if (_has_errors) {
         return;
     }
@@ -203,6 +212,7 @@ auto assembler::emit(common::opcode op, common::registers reg) -> void {
 }
 
 auto assembler::emit(common::opcode op, std::uint64_t num) -> void {
+    LOG2(op, num);
     if (_has_errors) {
         return;
     }
@@ -221,6 +231,7 @@ auto assembler::emit(common::opcode op, std::uint64_t num) -> void {
 }
 
 auto assembler::emit(common::opcode op, std::string label) -> void {
+    LOG2(op, label);
     if (_labels.find(label) == _labels.end()) {
         _labels[label].push_back(0);
         _labels[label].push_back(_pc);
@@ -241,6 +252,7 @@ auto assembler::emit(common::opcode op, std::string label) -> void {
 auto assembler::emit(common::opcode op,
                      std::pair<common::registers, common::registers> regs)
     -> void {
+    LOG1_NONL(op) /* << */ PAIR(regs);
     if (_has_errors) {
         return;
     }
@@ -283,12 +295,14 @@ auto assembler::emit_remaining_labels() -> void {
 }
 
 auto assembler::get_label(const std::string& line) -> std::string {
+    LOG1(line);
     // TODO: reject code like .label    :
     auto label_end = line.find_first_of(':');
     return std::string {line.begin() + 1, line.begin() + label_end};
 }
 
 auto assembler::get_opcode(const std::string& line) -> common::opcode {
+    LOG1(line);
     auto instruction_name =
         std::string {line.begin() + 1, line.begin() + line.find_first_of(' ')};
 
@@ -355,6 +369,7 @@ auto assembler::get_opcode(const std::string& line) -> common::opcode {
 }
 
 auto assembler::get_category(common::opcode op) -> opcode_category {
+    LOG1(op);
     using common::opcode;
     switch (op) {
     case opcode::noop:
@@ -396,6 +411,7 @@ auto assembler::get_category(common::opcode op) -> opcode_category {
 }
 
 auto assembler::get_register(const std::string& line) -> common::registers {
+    LOG1(line);
     auto reg_name_start = line.find_first_of(' ');
     while (!std::isalpha(line[reg_name_start])) {
         reg_name_start++;
@@ -410,6 +426,7 @@ auto assembler::get_register(const std::string& line) -> common::registers {
 
 auto assembler::get_register_pair(const std::string& line)
     -> std::pair<common::registers, common::registers> {
+    LOG1(line);
     auto first_reg_start = line.find_first_of(' ');
     while (!std::isalpha(line[first_reg_start])) {
         first_reg_start++;
@@ -433,6 +450,7 @@ auto assembler::get_register_pair(const std::string& line)
 }
 
 auto assembler::get_io_op(const std::string& line) -> common::io_op {
+    LOG1(line);
     auto op_start = line.find_first_of(' ');
     while (!std::isalpha(line[op_start])) {
         op_start++;
@@ -458,6 +476,7 @@ auto assembler::get_io_op(const std::string& line) -> common::io_op {
 }
 
 auto assembler::parse_register(const std::string& reg) -> common::registers {
+    LOG1(reg);
     switch (hash(reg.data(), reg.size())) {
     case "sp"_u64:
         return common::registers::sp;
@@ -565,6 +584,7 @@ auto assembler::parse_register(const std::string& reg) -> common::registers {
 }
 
 auto assembler::is_read_only(common::registers reg) noexcept -> bool {
+    LOG1(reg);
     using common::registers;
     switch (reg) {
     case registers::sp:
