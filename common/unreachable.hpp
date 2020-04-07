@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include "crosscompiler_defines.hpp"
+
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -41,16 +43,6 @@ public:
 }   // namespace common
 
 #ifndef UNREACHABLE
-    // REQVM_FUNCTION needs to live wherever UNREACHABLE is called so
-    // intentionally don't undefine it, however we won't define it if
-    // unreachable isn't used
-#    if defined(__GNUC__)
-#        define REQVM_COMMON_FUNCTION __PRETTY_FUNCTION__
-#    elif defined(_MSC_VER)
-#        define REQVM_COMMON_FUNCTION __FUNCSIG__
-#    else
-#        define REQVM_COMMON_FUNCTION __func__
-#    endif
 #    ifdef NDEBUG
 #        if defined(_MSC_VER)
 // See https://docs.microsoft.com/en-us/cpp/intrinsics/assume?view=vs-2019
