@@ -34,8 +34,9 @@ namespace common {
 
 class unreachable_code_reached : public std::runtime_error {
 public:
-    unreachable_code_reached(const char* what_arg) : runtime_error {what_arg} {}
-    unreachable_code_reached(const std::string& what_arg)
+    explicit unreachable_code_reached(const char* what_arg)
+        : runtime_error {what_arg} {}
+    explicit unreachable_code_reached(const std::string& what_arg)
         : runtime_error {what_arg} {}
     virtual ~unreachable_code_reached() noexcept = default;
 };

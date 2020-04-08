@@ -55,9 +55,9 @@ public:
         : vm_exception {"The following invalid opcode was found in the "
                         "provided binary: "}
         , _op {op} {}
-    explicit invalid_opcode(const char* what_arg, common::opcode op)
+    invalid_opcode(const char* what_arg, common::opcode op)
         : vm_exception {what_arg}, _op {op} {}
-    explicit invalid_opcode(const std::string& what_arg, common::opcode op)
+    invalid_opcode(const std::string& what_arg, common::opcode op)
         : vm_exception {what_arg}, _op {op} {}
 
     virtual ~invalid_opcode() noexcept = default;
@@ -102,8 +102,9 @@ public:
     // Delete default constructor to force a meaningful message
     bad_argument() = delete;
 
-    bad_argument(const char* what_arg) : vm_exception {what_arg} {};
-    bad_argument(const std::string& what_arg) : vm_exception {what_arg} {}
+    explicit bad_argument(const char* what_arg) : vm_exception {what_arg} {};
+    explicit bad_argument(const std::string& what_arg)
+        : vm_exception {what_arg} {}
 
     virtual ~bad_argument() noexcept = default;
 
