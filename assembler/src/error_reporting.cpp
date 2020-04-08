@@ -1,25 +1,25 @@
 #include "error_reporting.hpp"
 
-#include <cstdio>
+#include <iostream>
 
 namespace reqvm {
 
 auto report_to_user(level lvl, const std::string& msg) noexcept -> void {
     switch (lvl) {
     case level::info:
-        std::printf("INFO: ");
+        std::cout << "INFO: ";
         break;
     case level::warning:
-        std::printf("WARNING: ");
+        std::cout << "WARNING: ";
         break;
     case level::error:
-        std::printf("ERROR: ");
+        std::cout << "ERROR: ";
         break;
     case level::internal_assembler_error:
-        std::printf("INTERNAL ASSEMBLER ERROR: ");
+        std::cout << "INTERNAL ASSEMBLER ERROR: ";
         break;
     }
-    printf("%s\n", msg.c_str());
+    std::cout << msg;
 }
 
 }   // namespace reqvm
