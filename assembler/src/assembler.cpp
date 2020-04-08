@@ -25,13 +25,13 @@
 #include "assembler.hpp"
 
 #include "../../common/preamble.hpp"
+#include "error_reporting.hpp"
 #include "logger.hpp"
 
 #include <array>
+#include <magic_enum.hpp>
 
 #ifdef AGGRESIVE_LOGGING
-#    include <magic_enum.hpp>
-
 using namespace magic_enum::ostream_operators;
 #endif
 
@@ -143,12 +143,20 @@ auto assembler::run() -> int {
             }
             case opcode_category::unary_register: {
                 auto reg = get_register(line);
-                emit(op, reg);
+                if (not reg.has_value()) {
+                    // TODO: report error
+                    break;
+                }
+                emit(op, reg.value());
                 break;
             }
             case opcode_category::binary_registers: {
                 auto regs = get_register_pair(line);
-                emit(op, regs);
+                if (not regs.has_value()) {
+                    // TODO: report error
+                    break;
+                }
+                emit(op, regs.value());
                 break;
             }
             default:
@@ -168,7 +176,8 @@ auto assembler::run() -> int {
 }
 
 auto assembler::write_preamble() -> void {
-    _out.write(common::magic_byte_string, sizeof(common::magic_byte_string));
+    _out.write(common::magic_byte_string,
+               sizeof(common::magic_byte_string) - 1);
     std::array<char, 10> version {0};
     version[0] = '!';
     version[3] = ';';
@@ -305,67 +314,12 @@ auto assembler::get_opcode(const std::string& line) -> common::opcode {
     LOG1(line);
     auto instruction_name =
         std::string {line.begin() + 1, line.begin() + line.find_first_of(' ')};
-
-    using common::opcode;
-    switch (hash(instruction_name.data(), instruction_name.size())) {
-    case "noop"_u64:
-        return opcode::noop;
-    case "call"_u64:
-        return opcode::call;
-    case "ret"_u64:
-        return opcode::ret;
-    case "io"_u64:
-        return opcode::io;
-    case "add"_u64:
-        return opcode::add;
-    case "sub"_u64:
-        return opcode::sub;
-    case "mul"_u64:
-        return opcode::mul;
-    case "div"_u64:
-        return opcode::div;
-    case "mod"_u64:
-        return opcode::mul;
-    case "and"_u64:
-        return opcode::and_;
-    case "or"_u64:
-        return opcode::or_;
-    case "xor"_u64:
-        return opcode::xor_;
-    case "not"_u64:
-        return opcode::not_;
-    case "lshft"_u64:
-        return opcode::lshft;
-    case "rshft"_u64:
-        return opcode::rshft;
-    case "push"_u64:
-        return opcode::push;
-    case "pushc"_u64:
-        return opcode::pushc;
-    case "pop"_u64:
-        return opcode::pop;
-    case "cmp"_u64:
-        return opcode::cmp;
-    case "jmp"_u64:
-        return opcode::jmp;
-    case "jeq"_u64:
-        return opcode::jeq;
-    case "jneq"_u64:
-        return opcode::jneq;
-    case "jl"_u64:
-        return opcode::jl;
-    case "jleq"_u64:
-        return opcode::jleq;
-    case "jg"_u64:
-        return opcode::jg;
-    case "jgeq"_u64:
-        return opcode::jgeq;
-    case "halt"_u64:
-        return opcode::halt;
-    default:
-        // TODO: show an actually informative error
-        break;
+    auto op = magic_enum::enum_cast<common::opcode>(instruction_name);
+    if (not op.has_value()) {
+        report_to_user(level::error, instruction_name + " in line '" + line
+                                         + "' is not a valid mnemonic");
     }
+    return op.value();
 }
 
 auto assembler::get_category(common::opcode op) -> opcode_category {
@@ -410,14 +364,15 @@ auto assembler::get_category(common::opcode op) -> opcode_category {
     }
 }
 
-auto assembler::get_register(const std::string& line) -> common::registers {
+auto assembler::get_register(const std::string& line)
+    -> std::optional<common::registers> {
     LOG1(line);
     auto reg_name_start = line.find_first_of(' ');
-    while (!std::isalpha(line[reg_name_start])) {
+    while (not std::isalpha(line[reg_name_start])) {
         reg_name_start++;
     }
     auto reg_name_end = reg_name_start;
-    while (!std::isalnum(line[reg_name_end])) {
+    while (std::isalnum(line[reg_name_end])) {
         reg_name_end++;
     }
     return parse_register(
@@ -425,31 +380,42 @@ auto assembler::get_register(const std::string& line) -> common::registers {
 }
 
 auto assembler::get_register_pair(const std::string& line)
-    -> std::pair<common::registers, common::registers> {
+    -> std::optional<std::pair<common::registers, common::registers>> {
     LOG1(line);
     auto first_reg_start = line.find_first_of(' ');
-    while (!std::isalpha(line[first_reg_start])) {
+    while (not std::isalpha(line[first_reg_start])) {
         first_reg_start++;
     }
     auto first_reg_end = line.find_first_of(',');
-    while (!std::isalnum(line[first_reg_end])) {
+    while (not std::isalnum(line[first_reg_end])) {
         first_reg_end--;
     }
     auto second_reg_start = line.find_first_of(',');
-    while (!std::isalpha(line[second_reg_start])) {
+    while (not std::isalpha(line[second_reg_start])) {
         second_reg_start++;
     }
     auto second_reg_end = second_reg_start;
     while (std::isalnum(line[second_reg_end])) {
         second_reg_end++;
     }
-    return {parse_register(
-                {line.begin() + first_reg_start, line.begin() + first_reg_end}),
-            parse_register({line.begin() + second_reg_start,
-                            line.begin() + second_reg_start})};
+    auto r1 = parse_register(
+        {line.begin() + first_reg_start, line.begin() + first_reg_end + 1});
+    if (not r1.has_value()) {
+        // tODO: help the user or smth
+        return {};
+    }
+    auto r2 = parse_register(
+        {line.begin() + second_reg_start, line.begin() + second_reg_end});
+    if (not r2.has_value()) {
+        // todo: some error maybe
+        return {};
+    }
+    LOG1(r2.value());
+    return {std::pair {r1.value(), r2.value()}};
 }
 
-auto assembler::get_io_op(const std::string& line) -> common::io_op {
+auto assembler::get_io_op(const std::string& line)
+    -> std::optional<common::io_op> {
     LOG1(line);
     auto op_start = line.find_first_of(' ');
     while (!std::isalpha(line[op_start])) {
@@ -459,128 +425,25 @@ auto assembler::get_io_op(const std::string& line) -> common::io_op {
     while (std::isalnum(line[op_end])) {
         op_end++;
     }
-    auto the_op = std::string {line.begin() + op_start, line.begin() + op_end};
-    using common::io_op;
-    switch (hash(the_op.data(), the_op.size())) {
-    case "getc"_u64:
-        return io_op::getc;
-    case "putc"_u64:
-        return io_op::putc;
-    case "put8c"_u64:
-        return io_op::put8c;
-    case "putn"_u64:
-        return io_op::putn;
-        // default:
-        // TODO: report some errors
+    auto op     = std::string {line.begin() + op_start, line.begin() + op_end};
+    auto the_op = magic_enum::enum_cast<common::io_op>(op);
+    if (not the_op.has_value()) {
+        report_to_user(level::error, op + " in line '" + line
+                                         + "' is not a valid IO operation.");
     }
+    return the_op.value();
 }
 
-auto assembler::parse_register(const std::string& reg) -> common::registers {
+auto assembler::parse_register(const std::string& reg)
+    -> std::optional<common::registers> {
     LOG1(reg);
-    switch (hash(reg.data(), reg.size())) {
-    case "sp"_u64:
-        return common::registers::sp;
-    case "pc"_u64:
-        return common::registers::pc;
-    case "ire"_u64:
-        return common::registers::ire;
-#define CASE_GP(n)                                                             \
-    case "gp" #n##_u64:                                                        \
-        return common::registers::gp##n;
-#define CASE_IFA(n)                                                            \
-    case "ifa" #n##_u64:                                                       \
-        return common::registers::ifa##n;
-
-        // clang-format indents these as if they were statements but they should
-        // be indented like cases, force that
-        // clang-format off
-    CASE_GP(00)
-    CASE_GP(01)
-    CASE_GP(02)
-    CASE_GP(03)
-    CASE_GP(04)
-    CASE_GP(05)
-    CASE_GP(06)
-    CASE_GP(07)
-    CASE_GP(08)
-    CASE_GP(09)
-    CASE_GP(10)
-    CASE_GP(11)
-    CASE_GP(12)
-    CASE_GP(13)
-    CASE_GP(14)
-    CASE_GP(15)
-    CASE_GP(16)
-    CASE_GP(17)
-    CASE_GP(18)
-    CASE_GP(19)
-    CASE_GP(20)
-    CASE_GP(21)
-    CASE_GP(22)
-    CASE_GP(23)
-    CASE_GP(24)
-    CASE_GP(25)
-    CASE_GP(26)
-    CASE_GP(27)
-    CASE_GP(28)
-    CASE_GP(29)
-    CASE_GP(30)
-    CASE_GP(31)
-    CASE_GP(32)
-    CASE_GP(33)
-    CASE_GP(34)
-    CASE_GP(35)
-    CASE_GP(36)
-    CASE_GP(37)
-    CASE_GP(38)
-    CASE_GP(39)
-    CASE_GP(40)
-    CASE_GP(41)
-    CASE_GP(42)
-    CASE_GP(43)
-    CASE_GP(44)
-    CASE_GP(45)
-    CASE_GP(46)
-    CASE_GP(47)
-    CASE_GP(48)
-    CASE_GP(49)
-    CASE_GP(50)
-    CASE_GP(51)
-    CASE_GP(52)
-    CASE_GP(53)
-    CASE_GP(54)
-    CASE_GP(55)
-    CASE_GP(56)
-    CASE_GP(57)
-    CASE_GP(58)
-    CASE_GP(59)
-    CASE_GP(60)
-    CASE_GP(61)
-    CASE_GP(62)
-    CASE_GP(63)
-    CASE_IFA(00)
-    CASE_IFA(01)
-    CASE_IFA(02)
-    CASE_IFA(03)
-    CASE_IFA(04)
-    CASE_IFA(05)
-    CASE_IFA(06)
-    CASE_IFA(07)
-    CASE_IFA(08)
-    CASE_IFA(09)
-    CASE_IFA(10)
-    CASE_IFA(11)
-    CASE_IFA(12)
-    CASE_IFA(13)
-    CASE_IFA(14)
-    CASE_IFA(15)
-        // clang-format on
-#undef CASE_GP
-#undef CASE_IFA
-    default:
-        return common::registers::none;
-        // TODO: report an error
+    auto the_register = magic_enum::enum_cast<common::registers>(reg);
+    if (not the_register.has_value()) {
+        auto err_msg = "'" + reg + "' is not a valid register.";
+        report_to_user(level::error, err_msg);
     }
+    LOG1(the_register.value());
+    return the_register.value();
 }
 
 auto assembler::is_read_only(common::registers reg) noexcept -> bool {
