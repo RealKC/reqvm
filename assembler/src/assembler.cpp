@@ -35,36 +35,6 @@
 using namespace magic_enum::ostream_operators;
 #endif
 
-// This is an incredibly dumb hashing functions, we just make the bytes
-// of the string be a std::uint64_t instead.
-// Not cryptographically secure, but we don't need that.
-// A current limitation is that an instruction can't be more than 8 characters
-// long, but who needs that anyway?
-static constexpr auto hash(const char* str, std::size_t len) -> std::uint64_t {
-    if (len > 9) {
-        return ~0ull;
-    }
-
-    char s[8] = {0};
-    for (auto i = std::size_t {0}; i < len; i++) {
-        s[i] = str[i];
-    }
-
-    return static_cast<std::uint64_t>(s[0]) << 56
-           | static_cast<std::uint64_t>(s[1]) << 48
-           | static_cast<std::uint64_t>(s[2]) << 40
-           | static_cast<std::uint64_t>(s[3]) << 32
-           | static_cast<std::uint64_t>(s[4]) << 24
-           | static_cast<std::uint64_t>(s[5]) << 16
-           | static_cast<std::uint64_t>(s[6]) << 8
-           | static_cast<std::uint64_t>(s[7]);
-}
-
-static constexpr auto operator""_u64(const char* s, std::size_t l)
-    -> std::uint64_t {
-    return hash(s, l);
-}
-
 namespace reqvm {
 
 assembler::assembler(const std::string& filename) : _file {filename} {
