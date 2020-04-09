@@ -47,5 +47,5 @@
 #    define LOG1_NONL(f)
 #    define LOG_PAIR(p)
 #    define LOG2(f, s)
-#    define lOG_MSG(m)
+#    define LOG_MSG(m)
 #endif
