@@ -29,8 +29,10 @@
 #include "io.hpp"
 
 #include <algorithm>
+#include <array>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 
 static inline auto is_version_compatible(std::uint16_t major,
                                          std::uint16_t minor,
@@ -73,34 +75,27 @@ auto vm::run() -> int {
 
 auto vm::read_preamble() -> void {
     std::size_t i {0};
-    for (; i < sizeof(common::magic_byte_string); i++) {
+    for (; i < sizeof(common::magic_byte_string) - 1; i++) {
         if (_binary[i] != common::magic_byte_string[i]) {
             throw preamble_error {preamble_error::kind::nonstandard_mbs};
         }
     }
-    if (_binary[i] != '!') {
+    std::array<std::uint8_t, 10> version_string;
+    for (; i < sizeof(common::magic_byte_string) + 9; i++) {
+        version_string[i - (sizeof(common::magic_byte_string) - 1)] =
+            _binary[i];
+    }
+    if (version_string[0] != '!' || version_string[3] != ';'
+        || version_string[6] != ';' || version_string[9] != ';') {
         throw preamble_error {preamble_error::kind::bad_version_serialization};
     }
-    i++;
-    auto major = static_cast<std::uint16_t>(_binary[i]) << 8 | _binary[i + 1];
-    i++;
-    if (_binary[i] != ';') {
-        throw preamble_error {preamble_error::kind::bad_version_serialization};
-    }
-    i++;
-    auto minor = static_cast<std::uint16_t>(_binary[i]) << 8 | _binary[i + 1];
-    i++;
-    if (_binary[i] != ';') {
-        throw preamble_error {preamble_error::kind::bad_version_serialization};
-    }
-    i++;
-    auto patch = static_cast<std::uint16_t>(_binary[i]) << 8 | _binary[i + 1];
-    i++;
-    if (_binary[i] != ';') {
-        throw preamble_error {preamble_error::kind::bad_version_serialization};
-    }
-    i++;
-    if (!::is_version_compatible(major, minor, patch)) {
+    auto major =
+        static_cast<std::uint16_t>(version_string[1]) << 8 | version_string[2];
+    auto minor =
+        static_cast<std::uint16_t>(version_string[4]) << 8 | version_string[5];
+    auto patch =
+        static_cast<std::uint16_t>(version_string[7]) << 8 | version_string[8];
+    if (not ::is_version_compatible(major, minor, patch)) {
         throw preamble_error {preamble_error::kind::version_too_high};
     }
     // TODO: read ~~the version +~~ :^) the features
@@ -139,7 +134,8 @@ auto vm::cycle(common::opcode op) -> void {
     using common::opcode;
     switch (op) {
     case opcode::noop: {
-        // do nothing
+        // do nothing but advance pc
+        _regs.advance_pc(1);
         break;
     }
     case opcode::call: {
@@ -186,6 +182,7 @@ auto vm::cycle(common::opcode op) -> void {
             break;
         }
         }
+        _regs.advance_pc(3);
         break;
     }
     case opcode::add: {

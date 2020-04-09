@@ -48,14 +48,18 @@ auto assembler::run() -> int {
     std::string line;
     write_preamble();
     while (std::getline(_file, line)) {
+        LOG1(_pc);
         switch (line[0]) {
         case '%':
             // TODO: error because preprocessing should be done first
+            LOG_MSG("PP directive.\n");
             break;
         case ';':
             // line starts with comment, ignore
+            LOG_MSG("Comment.\n");
             break;
         case '.': {
+            LOG_MSG("label handling");
             auto label = get_label(line);
             if (_labels.find(label) != _labels.end()) {
                 if (_labels[label][0] == 0) {
@@ -171,9 +175,10 @@ auto assembler::write_preamble() -> void {
     _out.write(version.data(), version.size());
 
     const auto nullbyte = '\0';
-    for (auto i = sizeof(common::magic_byte_string) - 10; i < 256; i++) {
+    for (auto i = sizeof(common::magic_byte_string); i < 266; i++) {
         _out.write(&nullbyte, 1);
     }
+    _out.seekp(256);
 }
 
 auto assembler::emit(common::opcode op) -> void {
