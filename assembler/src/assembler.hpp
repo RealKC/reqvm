@@ -59,6 +59,8 @@ private:
         -> std::optional<std::pair<common::registers, common::registers>>;
     static auto get_io_op(const std::string& line)
         -> std::optional<common::io_op>;
+    static auto get_io_op_and_reg(const std::string& line)
+        -> std::optional<std::pair<common::io_op, common::registers>>;
     static auto is_read_only(common::registers reg) noexcept -> bool;
 
     enum class opcode_category {

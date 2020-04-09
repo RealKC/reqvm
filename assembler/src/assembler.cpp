@@ -159,9 +159,15 @@ auto assembler::run() -> int {
                 emit(op, regs.value());
                 break;
             }
-            default:
-                // TODO: add error
+            case opcode_category::binary_byte_then_register: {
+                auto byte_and_reg = get_io_op_and_reg(line);
+                if (not byte_and_reg.has_value()) {
+                    break;
+                }
+                emit(op, byte_and_reg.value().first,
+                     byte_and_reg.value().second);
                 break;
+            }
             }
             break;
         }
@@ -195,7 +201,7 @@ auto assembler::write_preamble() -> void {
     _out.write(version.data(), version.size());
 
     const auto nullbyte = '\0';
-    for (auto i = sizeof(common::magic_byte_string); i < 256; i++) {
+    for (auto i = sizeof(common::magic_byte_string) - 10; i < 256; i++) {
         _out.write(&nullbyte, 1);
     }
 }
@@ -411,7 +417,40 @@ auto assembler::get_register_pair(const std::string& line)
         return {};
     }
     LOG1(r2.value());
-    return {std::pair {r1.value(), r2.value()}};
+    return std::pair {r1.value(), r2.value()};
+}
+
+auto assembler::get_io_op_and_reg(const std::string& line)
+    -> std::optional<std::pair<common::io_op, common::registers>> {
+    LOG1(line);
+    auto the_io_op = get_io_op(line);
+    if (not the_io_op.has_value()) {
+        // Maybe report some proper error?
+        return {};
+    }
+    auto reg_start = line.find_first_of(' ');
+    // Find the start of the IO op
+    while (not std::isalpha(line[reg_start])) {
+        reg_start++;
+    }
+    reg_start += 4;
+    // put8c is the only IO operation to have 5 characters currently
+    // FIXME(?): more robust logic or nah?
+    reg_start += (the_io_op.value() == common::io_op::put8c);
+    while (not std::isalpha(line[reg_start])) {
+        reg_start++;
+    }
+    auto reg_end = reg_start;
+    while (std::isalnum(line[reg_end])) {
+        reg_end++;
+    }
+    auto the_register =
+        parse_register({line.begin() + reg_start, line.begin() + reg_end});
+    if (not the_register.has_value()) {
+        // Maybe some proper error handling?
+        return {};
+    }
+    return std::pair {the_io_op.value(), the_register.value()};
 }
 
 auto assembler::get_io_op(const std::string& line)
