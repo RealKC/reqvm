@@ -6,6 +6,8 @@ When creating an issue to report a bug please include as much information as pos
 
 ## Pull requests
 
+Note that if you need to add new source files to either the assembler or the VM, you will not need to make any changes to the Makefiles, as they can find new files by themselves.
+
 Do:  
 
 * submit code that uses C++17 features
