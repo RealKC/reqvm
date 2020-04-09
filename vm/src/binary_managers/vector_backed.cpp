@@ -22,35 +22,30 @@
  * SOFTWARE.
  */
 
-#pragma once
+#include "vector_backed.hpp"
 
-#include "../../common/opcodes.hpp"
-#include "binary_manager.hpp"
-#include "flags.hpp"
-#include "registers.hpp"
-#include "stack.hpp"
+#include <fstream>
 
-#include <cstdint>
-#include <vector>
+namespace fs = std::filesystem;
 
 namespace reqvm {
 
-class vm final {
-public:
-    vm() = delete;
-    explicit vm(const std::string& binary);
-    ~vm() noexcept = default;
-    auto run() -> int;
+vector_backed_binary_manager::vector_backed_binary_manager(
+    const fs::path& path, std::size_t file_size) {
+    _binary.resize(file_size);
+    std::ifstream the_file {path, std::ios::binary};
+    if (not the_file.read(reinterpret_cast<char*>(_binary.data()), file_size)) {
+        // TODO: report an error
+    }
+}
 
-private:
-    auto read_preamble() -> void;
-    auto cycle(common::opcode op) -> void;
+auto vector_backed_binary_manager::operator[](std::size_t idx) noexcept
+    -> std::uint8_t {
+    return _binary[idx];
+}
 
-    std::unique_ptr<binary_manager> _binary;
-    registers _regs;
-    stack _stack;
-    flags _flags;
-    bool _halted {false};
-};
+auto vector_backed_binary_manager::size() noexcept -> std::size_t {
+    return _binary.size();
+}
 
 }   // namespace reqvm

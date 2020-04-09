@@ -53,22 +53,14 @@ static inline auto is_version_compatible(std::uint16_t major,
 namespace reqvm {
 
 vm::vm(const std::string& binary) {
-    {
-        namespace fs = std::filesystem;
-        fs::path bin_path {binary};
-        _binary.reserve(fs::file_size(bin_path));
-    }
-    std::ifstream the_binary {binary, std::ios::binary};
-    std::uint8_t in;
-    while (the_binary.read(reinterpret_cast<char*>(&in), 1)) {
-        _binary.push_back(in);
-    }
+    auto path = std::filesystem::path {binary};
+    _binary   = std::move(load_from(path));
 }
 
 auto vm::run() -> int {
     read_preamble();
-    while (_regs.pc() <= _binary.size() && !_halted) {
-        cycle(static_cast<common::opcode>(_binary[_regs.pc()]));
+    while (_regs.pc() <= _binary->size() && !_halted) {
+        cycle(static_cast<common::opcode>((*_binary)[_regs.pc()]));
     }
     return static_cast<int>(_regs.ire());
 }
@@ -76,14 +68,14 @@ auto vm::run() -> int {
 auto vm::read_preamble() -> void {
     std::size_t i {0};
     for (; i < sizeof(common::magic_byte_string) - 1; i++) {
-        if (_binary[i] != common::magic_byte_string[i]) {
+        if ((*_binary)[i] != common::magic_byte_string[i]) {
             throw preamble_error {preamble_error::kind::nonstandard_mbs};
         }
     }
     std::array<std::uint8_t, 10> version_string;
     for (; i < sizeof(common::magic_byte_string) + 9; i++) {
         version_string[i - (sizeof(common::magic_byte_string) - 1)] =
-            _binary[i];
+            (*_binary)[i];
     }
     if (version_string[0] != '!' || version_string[3] != ';'
         || version_string[6] != ';' || version_string[9] != ';') {
@@ -108,22 +100,22 @@ auto vm::cycle(common::opcode op) -> void {
         if (registers::is_error_on_lhs((reg))) {                               \
             throw reqvm::invalid_register {                                    \
                 "Invalid lhs operand for opcode '" #opcode "': ",              \
-                static_cast<common::registers>(_binary[_regs.pc() + 1])};      \
+                static_cast<common::registers>((*_binary)[_regs.pc() + 1])};   \
         }                                                                      \
     } while (0)
 
 #define MAKE_8_BYTE_VAL(val)                                                   \
-    auto val = static_cast<std::uint64_t>(_binary[_regs.pc() + 1]) << 56       \
-               | static_cast<std::uint64_t>(_binary[_regs.pc() + 2]) << 48     \
-               | static_cast<std::uint64_t>(_binary[_regs.pc() + 3]) << 40     \
-               | static_cast<std::uint64_t>(_binary[_regs.pc() + 4]) << 32     \
-               | static_cast<std::uint64_t>(_binary[_regs.pc() + 5]) << 24     \
-               | static_cast<std::uint64_t>(_binary[_regs.pc() + 6]) << 16     \
-               | static_cast<std::uint64_t>(_binary[_regs.pc() + 7]) << 8      \
-               | static_cast<std::uint64_t>(_binary[_regs.pc() + 8])
+    auto val = static_cast<std::uint64_t>((*_binary)[_regs.pc() + 1]) << 56    \
+               | static_cast<std::uint64_t>((*_binary)[_regs.pc() + 2]) << 48  \
+               | static_cast<std::uint64_t>((*_binary)[_regs.pc() + 3]) << 40  \
+               | static_cast<std::uint64_t>((*_binary)[_regs.pc() + 4]) << 32  \
+               | static_cast<std::uint64_t>((*_binary)[_regs.pc() + 5]) << 24  \
+               | static_cast<std::uint64_t>((*_binary)[_regs.pc() + 6]) << 16  \
+               | static_cast<std::uint64_t>((*_binary)[_regs.pc() + 7]) << 8   \
+               | static_cast<std::uint64_t>((*_binary)[_regs.pc() + 8])
 
 #define CHECK_AT_LEAST_8_BYTES(opcode)                                         \
-    if (_binary.size() - _regs.pc() < 8) {                                     \
+    if (_binary->size() - _regs.pc() < 8) {                                    \
         throw bad_argument {                                                   \
             "Opcode '" #opcode                                                 \
             "c' is the last opcode in your binary and after"                   \
@@ -155,29 +147,29 @@ auto vm::cycle(common::opcode op) -> void {
     }
     case opcode::io: {
         using common::io_op;
-        switch (io::parse_from_byte(_binary[_regs.pc() + 1])) {
+        switch (io::parse_from_byte((*_binary)[_regs.pc() + 1])) {
         case io_op::getc: {
-            auto reg = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+            auto reg = registers::parse_from_byte((*_binary)[_regs.pc() + 2]);
             if (registers::is_error_on_lhs(reg)) {
                 throw invalid_register {
                     "Invalid lhs register for opcode 'io getc':",
-                    static_cast<common::registers>(_binary[_regs.pc() + 2])};
+                    static_cast<common::registers>((*_binary)[_regs.pc() + 2])};
             }
             _regs[reg] = io::getc();
             break;
         }
         case io_op::putc: {
-            auto reg = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+            auto reg = registers::parse_from_byte((*_binary)[_regs.pc() + 2]);
             io::putc(_regs[reg]);
             break;
         }
         case io_op::put8c: {
-            auto reg = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+            auto reg = registers::parse_from_byte((*_binary)[_regs.pc() + 2]);
             io::put8c(_regs[reg]);
             break;
         }
         case io_op::putn: {
-            auto reg = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+            auto reg = registers::parse_from_byte((*_binary)[_regs.pc() + 2]);
             io::putn(_regs[reg]);
             break;
         }
@@ -186,98 +178,98 @@ auto vm::cycle(common::opcode op) -> void {
         break;
     }
     case opcode::add: {
-        auto r1 = registers::parse_from_byte(_binary[_regs.pc() + 1]);
+        auto r1 = registers::parse_from_byte((*_binary)[_regs.pc() + 1]);
         CHECK_LHS_REG(add, r1);
-        auto r2 = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+        auto r2 = registers::parse_from_byte((*_binary)[_regs.pc() + 2]);
         _regs[r1] += _regs[r2];
         _regs.advance_pc(3);
         break;
     }
     case opcode::sub: {
-        auto r1 = registers::parse_from_byte(_binary[_regs.pc() + 1]);
+        auto r1 = registers::parse_from_byte((*_binary)[_regs.pc() + 1]);
         CHECK_LHS_REG(sub, r1);
-        auto r2 = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+        auto r2 = registers::parse_from_byte((*_binary)[_regs.pc() + 2]);
         _regs[r1] -= _regs[r2];
         _regs.advance_pc(3);
         break;
     }
     case opcode::mul: {
-        auto r1 = registers::parse_from_byte(_binary[_regs.pc() + 1]);
+        auto r1 = registers::parse_from_byte((*_binary)[_regs.pc() + 1]);
         CHECK_LHS_REG(mul, r1);
-        auto r2 = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+        auto r2 = registers::parse_from_byte((*_binary)[_regs.pc() + 2]);
         _regs[r1] *= _regs[r2];
         _regs.advance_pc(3);
         break;
     }
     case opcode::div: {
-        auto r1 = registers::parse_from_byte(_binary[_regs.pc() + 1]);
+        auto r1 = registers::parse_from_byte((*_binary)[_regs.pc() + 1]);
         CHECK_LHS_REG(div, r1);
-        auto r2 = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+        auto r2 = registers::parse_from_byte((*_binary)[_regs.pc() + 2]);
         _regs[r1] /= _regs[r2];
         _regs.advance_pc(3);
         break;
     }
     case opcode::mod: {
-        auto r1 = registers::parse_from_byte(_binary[_regs.pc() + 1]);
+        auto r1 = registers::parse_from_byte((*_binary)[_regs.pc() + 1]);
         CHECK_LHS_REG(mod, r1);
-        auto r2 = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+        auto r2 = registers::parse_from_byte((*_binary)[_regs.pc() + 2]);
         _regs[r1] %= _regs[r2];
         _regs.advance_pc(3);
         break;
     }
     case opcode::and_: {
-        auto r1 = registers::parse_from_byte(_binary[_regs.pc() + 1]);
+        auto r1 = registers::parse_from_byte((*_binary)[_regs.pc() + 1]);
         CHECK_LHS_REG(and, r1);
-        auto r2 = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+        auto r2 = registers::parse_from_byte((*_binary)[_regs.pc() + 2]);
         _regs[r1] &= _regs[r2];
         _regs.advance_pc(3);
         break;
     }
     case opcode::or_: {
-        auto r1 = registers::parse_from_byte(_binary[_regs.pc() + 1]);
+        auto r1 = registers::parse_from_byte((*_binary)[_regs.pc() + 1]);
         CHECK_LHS_REG(or, r1);
-        auto r2 = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+        auto r2 = registers::parse_from_byte((*_binary)[_regs.pc() + 2]);
         _regs[r1] |= _regs[r2];
         _regs.advance_pc(3);
         break;
     }
     case opcode::xor_: {
-        auto r1 = registers::parse_from_byte(_binary[_regs.pc() + 1]);
+        auto r1 = registers::parse_from_byte((*_binary)[_regs.pc() + 1]);
         CHECK_LHS_REG(xor, r1);
-        auto r2 = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+        auto r2 = registers::parse_from_byte((*_binary)[_regs.pc() + 2]);
         _regs[r1] ^= _regs[r2];
         _regs.advance_pc(3);
         break;
     }
     case opcode::not_: {
-        auto r1 = registers::parse_from_byte(_binary[_regs.pc() + 1]);
+        auto r1 = registers::parse_from_byte((*_binary)[_regs.pc() + 1]);
         if (registers::is_error_on_lhs(r1)) {
             throw invalid_register {
                 "Invalid operand for opcode 'not': ",
-                static_cast<common::registers>(_binary[_regs.pc() + 1])};
+                static_cast<common::registers>((*_binary)[_regs.pc() + 1])};
         }
         _regs[r1] = ~_regs[r1];
         _regs.advance_pc(2);
         break;
     }
     case opcode::lshft: {
-        auto r1 = registers::parse_from_byte(_binary[_regs.pc() + 1]);
+        auto r1 = registers::parse_from_byte((*_binary)[_regs.pc() + 1]);
         CHECK_LHS_REG(lshft, r1);
-        auto r2 = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+        auto r2 = registers::parse_from_byte((*_binary)[_regs.pc() + 2]);
         _regs[r1] <<= _regs[r2];
         _regs.advance_pc(3);
         break;
     }
     case opcode::rshft: {
-        auto r1 = registers::parse_from_byte(_binary[_regs.pc() + 1]);
+        auto r1 = registers::parse_from_byte((*_binary)[_regs.pc() + 1]);
         CHECK_LHS_REG(rhsft, r1);
-        auto r2 = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+        auto r2 = registers::parse_from_byte((*_binary)[_regs.pc() + 2]);
         _regs[r1] >>= _regs[r2];
         _regs.advance_pc(3);
         break;
     }
     case opcode::push: {
-        auto r1 = registers::parse_from_byte(_binary[_regs.pc() + 1]);
+        auto r1 = registers::parse_from_byte((*_binary)[_regs.pc() + 1]);
         _stack.push(_regs[r1], _regs);
         _regs.advance_pc(2);
         break;
@@ -290,19 +282,19 @@ auto vm::cycle(common::opcode op) -> void {
         break;
     }
     case opcode::pop: {
-        auto r1 = registers::parse_from_byte(_binary[_regs.pc() + 1]);
+        auto r1 = registers::parse_from_byte((*_binary)[_regs.pc() + 1]);
         if (registers::is_error_on_lhs(r1)) {
             throw invalid_register {
                 "Invalid operand for opcode 'pop': ",
-                static_cast<common::registers>(_binary[_regs.pc() + 1])};
+                static_cast<common::registers>((*_binary)[_regs.pc() + 1])};
         }
         _regs[r1] = _stack.pop(_regs);
         _regs.advance_pc(2);
         break;
     }
     case opcode::cmp: {
-        auto r1 = registers::parse_from_byte(_binary[_regs.pc() + 1]);
-        auto r2 = registers::parse_from_byte(_binary[_regs.pc() + 2]);
+        auto r1 = registers::parse_from_byte((*_binary)[_regs.pc() + 1]);
+        auto r2 = registers::parse_from_byte((*_binary)[_regs.pc() + 2]);
 
         if (_regs[r1] < _regs[r2]) {
             _flags.cmp_flag = static_cast<std::uint64_t>(flags::cf::less);

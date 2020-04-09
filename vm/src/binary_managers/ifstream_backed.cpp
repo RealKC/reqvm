@@ -22,35 +22,35 @@
  * SOFTWARE.
  */
 
-#pragma once
-
-#include "../../common/opcodes.hpp"
-#include "binary_manager.hpp"
-#include "flags.hpp"
-#include "registers.hpp"
-#include "stack.hpp"
-
-#include <cstdint>
-#include <vector>
+#include "ifstream_backed.hpp"
 
 namespace reqvm {
 
-class vm final {
-public:
-    vm() = delete;
-    explicit vm(const std::string& binary);
-    ~vm() noexcept = default;
-    auto run() -> int;
+ifstream_backed_binary_manager::ifstream_backed_binary_manager(
+    const std::filesystem::path& path) noexcept
+    : _binary {path, std::ios::binary}
+    , _size {std::filesystem::file_size(path)} {}
 
-private:
-    auto read_preamble() -> void;
-    auto cycle(common::opcode op) -> void;
+auto ifstream_backed_binary_manager::operator[](std::size_t idx) noexcept
+    -> std::uint8_t {
+    if (auto pos = _binary.tellg(); pos >= 0) {
+        if (idx == static_cast<std::size_t>(_binary.tellg())) {
+            char byte;
+            _binary.read(&byte, 1);
+            return static_cast<std::uint8_t>(byte);
+        }
+    } else {
+        // TODO: signal an error, the reqvm way
+        return 0;
+    }
+    _binary.seekg(idx);
+    char byte;
+    _binary.read(&byte, 1);
+    return static_cast<std::uint8_t>(byte);
+}
 
-    std::unique_ptr<binary_manager> _binary;
-    registers _regs;
-    stack _stack;
-    flags _flags;
-    bool _halted {false};
-};
+auto ifstream_backed_binary_manager::size() noexcept -> std::size_t {
+    return _size;
+}
 
 }   // namespace reqvm

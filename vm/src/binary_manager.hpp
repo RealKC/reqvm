@@ -24,33 +24,35 @@
 
 #pragma once
 
-#include "../../common/opcodes.hpp"
-#include "binary_manager.hpp"
-#include "flags.hpp"
-#include "registers.hpp"
-#include "stack.hpp"
+#include "utility.hpp"
 
+#include <cstddef>
 #include <cstdint>
-#include <vector>
+#include <filesystem>
+#include <memory>
 
 namespace reqvm {
 
-class vm final {
+/*
+ * A binary_manager is an interface modeling the operations that the VM needs to
+ * do on a binary.
+ *
+ * As a polymoprhic type it is not movable or copyable to prevent slicing
+ * issues.
+ */
+class binary_manager {
+    REQVM_MAKE_NONCOPYABLE(binary_manager)
+    REQVM_MAKE_NONMOVABLE(binary_manager)
 public:
-    vm() = delete;
-    explicit vm(const std::string& binary);
-    ~vm() noexcept = default;
-    auto run() -> int;
+    binary_manager() noexcept = default;
 
-private:
-    auto read_preamble() -> void;
-    auto cycle(common::opcode op) -> void;
+    virtual ~binary_manager() noexcept = default;
 
-    std::unique_ptr<binary_manager> _binary;
-    registers _regs;
-    stack _stack;
-    flags _flags;
-    bool _halted {false};
+    virtual auto operator[](std::size_t idx) noexcept -> std::uint8_t = 0;
+
+    virtual auto size() noexcept -> std::size_t = 0;
 };
+
+auto load_from(const std::filesystem::path&) -> std::unique_ptr<binary_manager>;
 
 }   // namespace reqvm

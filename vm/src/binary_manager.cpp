@@ -22,35 +22,21 @@
  * SOFTWARE.
  */
 
-#pragma once
-
-#include "../../common/opcodes.hpp"
 #include "binary_manager.hpp"
-#include "flags.hpp"
-#include "registers.hpp"
-#include "stack.hpp"
 
-#include <cstdint>
-#include <vector>
+#include "binary_managers/ifstream_backed.hpp"
+#include "binary_managers/vector_backed.hpp"
 
 namespace reqvm {
 
-class vm final {
-public:
-    vm() = delete;
-    explicit vm(const std::string& binary);
-    ~vm() noexcept = default;
-    auto run() -> int;
-
-private:
-    auto read_preamble() -> void;
-    auto cycle(common::opcode op) -> void;
-
-    std::unique_ptr<binary_manager> _binary;
-    registers _regs;
-    stack _stack;
-    flags _flags;
-    bool _halted {false};
-};
+auto load_from(const std::filesystem::path& path)
+    -> std::unique_ptr<binary_manager> {
+    auto file_size = std::filesystem::file_size(path);
+    if (file_size < std::uintmax_t {64} * 1024 * 1024) {
+        return std::make_unique<vector_backed_binary_manager>(
+            path, static_cast<std::size_t>(file_size));
+    }
+    return std::make_unique<ifstream_backed_binary_manager>(path);
+}
 
 }   // namespace reqvm

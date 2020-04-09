@@ -24,33 +24,32 @@
 
 #pragma once
 
-#include "../../common/opcodes.hpp"
-#include "binary_manager.hpp"
-#include "flags.hpp"
-#include "registers.hpp"
-#include "stack.hpp"
+#include "../binary_manager.hpp"
+#include "../utility.hpp"
 
+#include <cstddef>
 #include <cstdint>
-#include <vector>
+#include <fstream>
+#include <memory>
 
 namespace reqvm {
 
-class vm final {
+class ifstream_backed_binary_manager final : public binary_manager {
+    REQVM_MAKE_NONCOPYABLE(ifstream_backed_binary_manager)
+    REQVM_MAKE_NONMOVABLE(ifstream_backed_binary_manager)
 public:
-    vm() = delete;
-    explicit vm(const std::string& binary);
-    ~vm() noexcept = default;
-    auto run() -> int;
+    ifstream_backed_binary_manager() = delete;
+    ifstream_backed_binary_manager(const std::filesystem::path&) noexcept;
+
+    virtual ~ifstream_backed_binary_manager() noexcept = default;
+
+    auto operator[](std::size_t idx) noexcept -> std::uint8_t override;
+
+    auto size() noexcept -> std::size_t override;
 
 private:
-    auto read_preamble() -> void;
-    auto cycle(common::opcode op) -> void;
-
-    std::unique_ptr<binary_manager> _binary;
-    registers _regs;
-    stack _stack;
-    flags _flags;
-    bool _halted {false};
+    std::ifstream _binary;
+    std::size_t _size {0};
 };
 
 }   // namespace reqvm
