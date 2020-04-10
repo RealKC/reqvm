@@ -22,23 +22,34 @@
  * SOFTWARE.
  */
 
-#include "binary_manager.hpp"
+#include "memory_mapped_file_backed.hpp"
 
-#include "binary_managers/ifstream_backed.hpp"
-#include "binary_managers/memory_mapped_file_backed.hpp"
-#include "binary_managers/vector_backed.hpp"
+#define REQVM_IN_THE_MMF_CPP_FILE
+#if defined(REQVM_ON_WINDOWS)
+#    include "memory_mapped_file_backed.win32.ipp"
+#elif defined(REQVM_ON_POSIX)
+#    include "memory_mapped_file_backed.posix.ipp"
+#endif
+#undef REQVM_IN_THE_MMF_CPP_FILE
+
+/*
+ * README:
+ *
+ * This file is only meant to contain the platform agnostic code of
+ * mmf_backed_binary_manager.
+ *
+ * All platform specific code should reside in the appropriate .ipp files.
+ */
 
 namespace reqvm {
 
-auto load_from(const std::filesystem::path& path)
-    -> std::unique_ptr<binary_manager> {
-    auto file_size = std::filesystem::file_size(path);
-    if (file_size < std::uintmax_t {64} * 1024 * 1024) {
-        return std::make_unique<vector_backed_binary_manager>(
-            path, static_cast<std::size_t>(file_size));
-    }
-    return std::make_unique<mmf_backed_binary_manager>(path);
-    // return std::make_unique<ifstream_backed_binary_manager>(path);
+auto mmf_backed_binary_manager::operator[](std::size_t idx) noexcept
+    -> std::uint8_t {
+    return _data[idx];
+}
+
+auto mmf_backed_binary_manager::size() noexcept -> std::size_t {
+    return _size;
 }
 
 }   // namespace reqvm
