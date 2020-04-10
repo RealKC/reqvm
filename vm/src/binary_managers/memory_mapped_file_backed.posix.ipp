@@ -58,7 +58,7 @@ mmf_backed_binary_manager::mmf_backed_binary_manager(
     // FIXME: open can fail, so we should report an error if it does.
     {
         struct stat st;
-        if (fstat(_file_descriptor, &st) != 0) {
+        if (::fstat(_file_descriptor, &st) != 0) {
             // FIXME: report an error.
         }
         _size = static_cast<std::size_t>(st.st_size);
