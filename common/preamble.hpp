@@ -37,7 +37,7 @@ namespace version {
 
 static constexpr std::uint16_t major = 0;
 static constexpr std::uint16_t minor = 1;
-static constexpr std::uint16_t patch = 0;
+static constexpr std::uint16_t patch = 5;
 
 }   // namespace version
 
