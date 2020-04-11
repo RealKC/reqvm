@@ -39,7 +39,7 @@ class file_backed_binary_manager final : public binary_manager {
     REQVM_MAKE_NONMOVABLE(file_backed_binary_manager)
 public:
     file_backed_binary_manager() = delete;
-    file_backed_binary_manager(const std::filesystem::path&) noexcept;
+    file_backed_binary_manager(const fs::path&) noexcept;
 
     virtual ~file_backed_binary_manager() noexcept = default;
 

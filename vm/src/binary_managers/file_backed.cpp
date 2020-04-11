@@ -27,9 +27,8 @@
 namespace reqvm {
 
 file_backed_binary_manager::file_backed_binary_manager(
-    const std::filesystem::path& path) noexcept
-    : _binary {path, std::ios::binary}
-    , _size {std::filesystem::file_size(path)} {}
+    const fs::path& path) noexcept
+    : _binary {path, std::ios::binary}, _size {fs::file_size(path)} {}
 
 auto file_backed_binary_manager::operator[](std::size_t idx) noexcept
     -> std::uint8_t {

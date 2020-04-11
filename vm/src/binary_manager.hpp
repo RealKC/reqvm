@@ -31,6 +31,8 @@
 #include <filesystem>
 #include <memory>
 
+namespace fs = std::filesystem;
+
 namespace reqvm {
 
 /*
@@ -53,6 +55,6 @@ public:
     virtual auto size() noexcept -> std::size_t = 0;
 };
 
-auto load_from(const std::filesystem::path&) -> std::unique_ptr<binary_manager>;
+auto load_from(const fs::path&) -> std::unique_ptr<binary_manager>;
 
 }   // namespace reqvm

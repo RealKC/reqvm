@@ -30,9 +30,8 @@
 
 namespace reqvm {
 
-auto load_from(const std::filesystem::path& path)
-    -> std::unique_ptr<binary_manager> {
-    auto file_size = std::filesystem::file_size(path);
+auto load_from(const fs::path& path) -> std::unique_ptr<binary_manager> {
+    auto file_size = fs::file_size(path);
     if (file_size < std::uintmax_t {64} * 1024 * 1024) {
         return std::make_unique<vector_backed_binary_manager>(
             path, static_cast<std::size_t>(file_size));

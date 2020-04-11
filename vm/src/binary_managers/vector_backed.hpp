@@ -37,8 +37,7 @@ class vector_backed_binary_manager final : public binary_manager {
     REQVM_MAKE_NONMOVABLE(vector_backed_binary_manager)
 public:
     vector_backed_binary_manager() = delete;
-    vector_backed_binary_manager(const std::filesystem::path&,
-                                 std::size_t file_size);
+    vector_backed_binary_manager(const fs::path&, std::size_t file_size);
 
     virtual ~vector_backed_binary_manager() noexcept = default;
 

@@ -26,8 +26,6 @@
 
 #include <fstream>
 
-namespace fs = std::filesystem;
-
 namespace reqvm {
 
 vector_backed_binary_manager::vector_backed_binary_manager(
