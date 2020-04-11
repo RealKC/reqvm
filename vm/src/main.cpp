@@ -23,6 +23,7 @@
  */
 
 #include "../../common/unreachable.hpp"
+#include "binary_managers/exceptions.hpp"
 #include "exceptions.hpp"
 #include "io.hpp"
 #include "vm.hpp"
@@ -98,6 +99,11 @@ auto main(int argc, char** argv) -> int try {
     printf("e.what(): %s %#x (%u)\n", e.what(),
            static_cast<unsigned int>(e.the_invalid_op()),
            static_cast<unsigned int>(e.the_invalid_op()));
+    return EXIT_FAILURE;
+} catch (const reqvm::mmap_error& e) {
+    puts(panic);
+    puts("reqvm has encountered an issue trying to open your binary.\n");
+    printf("e.what(): %s\n", e.what());
     return EXIT_FAILURE;
 #ifndef NDEBUG
 } catch (const common::unreachable_code_reached& e) {

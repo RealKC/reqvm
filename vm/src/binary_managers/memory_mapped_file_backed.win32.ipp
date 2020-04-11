@@ -44,32 +44,41 @@
 #    error "This file should only be included by memory_mapped_file_backed.cpp"
 #endif
 
+#include "../utility.hpp"
+#include "exceptions.hpp"
+
+#include <cstdio>
+#include <cstring>
+#include <new>
+
 namespace reqvm {
 
 mmf_backed_binary_manager::mmf_backed_binary_manager(
     const std::filesystem::path& path) {
     _file = ::CreateFileW(path.c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING,
                           FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (_file == INVALID_HANDLE_VALUE) {
+        throw mmap_error {::GetLastError(), mmap_error::kind::file};
+    }
 
     {
         ::LARGE_INTEGER sz;
-        ::GetFileSizeEx(_file, &sz);
-        _size = static_cast<std::size_t>(sz.QuadPart);
-        if (_size == 0) {
-            // FIXME: We should report an error here.
+        if (::GetFileSizeEx(_file, &sz)) {
+            throw mmap_error {::GetLastError(), mmap_error::kind::file_size};
         }
+        _size = static_cast<std::size_t>(sz.QuadPart);
     }
 
     _mapping =
         ::CreateFileMappingA(_file, nullptr, PAGE_READONLY, 0, 0, nullptr);
     if (not _mapping) {
-        // FIXME: We should report an error here.
+        throw mmap_error {::GetLastError(), mmap_error::kind::mapping};
     }
 
     _data = static_cast<std::uint8_t*>(
         ::MapViewOfFile(_mapping, FILE_MAP_READ, 0, 0, 0));
     if (not _data) {
-        // FIXME: We should report an error here.
+        throw mmap_error {::GetLastError(), mmap_error::kind::mapping};
     }
 }
 
@@ -81,6 +90,90 @@ mmf_backed_binary_manager::~mmf_backed_binary_manager() noexcept {
     ::UnmapViewOfFile(_data);
     ::CloseHandle(_mapping);
     ::CloseHandle(_file);
+}
+
+mmap_error::mmap_error(error_code_t ec, kind k) noexcept {
+    class deferred_local_free final {
+        REQVM_MAKE_NONCOPYABLE(deferred_local_free)
+        REQVM_MAKE_NONMOVABLE(deferred_local_free)
+
+        deferred_local_free(void* p) noexcept : _p {p} {}
+        ~deferred_local_free() noexcept {
+            ::LocalFree(_p);
+        }
+
+    private:
+        void* _p;
+    };
+
+    char* err_msg {nullptr};
+    auto succeeded = ::FormatMessageA(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM
+            | FORMAT_MESSAGE_IGNORE_INSERTS,
+        nullptr, ec, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&err_msg,
+        0, nullptr);
+
+    if (not succeeded) {
+        const char* fmt_string =
+            "An error occured while retrieving extended format information. "
+            "The error code returned by the system API: %d.";
+        int ec_as_int = static_cast<int>(ec);
+        auto size     = std::snprintf(nullptr, 0, fmt_string, ec_as_int);
+        if (size < 0) {
+            // Probably memory exhaustion? kinda weird given this should only be
+            // called on start up. Oh well, leave _message untouched.
+            // We'll check for this in ::what()
+            return;
+        }
+        _message = new (std::nothrow) char[size + 1];
+        if (not _message) {
+            return;
+        }
+        if (std::sprintf(_message, fmt_string, ec_as_int) < 0) {
+            _message = nullptr;
+            return;
+        }
+        return;
+    }
+
+    deferred_local_free dlf {err_msg};
+
+    const char* fmt_string {nullptr};
+    switch (k) {
+    case kind::file:
+        fmt_string = "An error occured while opening the binary: %s";
+        break;
+    case kind::file_size:
+        fmt_string =
+            "An error occured while calculating the size of your binary: %s";
+        break;
+    case kind::mapping:
+        fmt_string = "An error occured while memory mapping the binary: %s";
+        break;
+    }
+
+    auto buf_size = std::snprintf(nullptr, 0, fmt_string, _message);
+    if (buf_size < 0) {
+        return;
+    }
+    _message = new (std::nothrow) char[buf_size + 1];
+    if (not _message) {
+        return;
+    }
+    if (std::sprintf(_message, fmt_string, err_msg) < 0) {
+        _message = nullptr;   // ensure _message is null
+    }
+    return;
+}
+
+mmap_error::~mmap_error() noexcept {
+    delete _message;
+}
+
+auto mmap_error::what() const noexcept -> const char* {
+    return _message ? _message
+                    : "There was an error allocating a buffer to store the "
+                      "error message.";
 }
 
 }   // namespace reqvm

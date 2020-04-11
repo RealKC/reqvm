@@ -24,12 +24,7 @@
 
 #pragma once
 
-#include "../binary_manager.hpp"
 #include "../detect_platform.hpp"
-#include "../utility.hpp"
-
-#include <cstdint>
-#include <filesystem>
 
 #if defined(REQVM_ON_WINDOWS)
 // Any Windows API Gods able to help me trim down this include?
@@ -39,37 +34,45 @@
 #    include <windows.h>
 #endif
 
+#include <stdexcept>
+
 namespace reqvm {
 
-class mmf_backed_binary_manager final : public binary_manager {
-    REQVM_MAKE_NONCOPYABLE(mmf_backed_binary_manager)
-    REQVM_MAKE_NONMOVABLE(mmf_backed_binary_manager)
+/*
+ * Represents an error encountered in the process of memory mapping a file
+ *
+ * Definitions for the member functions of this class are present in
+ * memory_mapped_file_backed.{win32,posix}.ipp in a platform appropriate manner
+ */
+class mmap_error : public std::exception {
 public:
-    mmf_backed_binary_manager() = delete;
-    explicit mmf_backed_binary_manager(const std::filesystem::path&);
+#if defined(REQVM_ON_WINDOWS)
+    using error_code_t = ::DWORD;
+#elif defined(REQVM_ON_POSIX)
+    using error_code_t = int;
+#endif
+    enum class kind {
+        file = 1,
+        mapping,
+        file_size,
+    };
 
-    virtual ~mmf_backed_binary_manager() noexcept;
+    mmap_error(error_code_t, kind) noexcept;
 
-    auto operator[](std::size_t idx) noexcept -> std::uint8_t override;
+    virtual ~mmap_error() noexcept;
 
-    auto size() noexcept -> std::size_t override;
+    auto what() const noexcept -> const char* override;
 
 private:
+// On MS Windows we store the message associated with the error code
+// On POSIX Platforms we store the error code and its kind and retrieve a
+//    message associated with it in ::what()
 #if defined(REQVM_ON_WINDOWS)
-    ::HANDLE _file;
-    ::HANDLE _mapping;
+    char* _message {nullptr};
 #elif defined(REQVM_ON_POSIX)
-    int _file_descriptor;
+    error_code_t _ec {0};
+    kind _k {0};
 #endif
-    /* NOTE:
-     *       * On MS Windows this is a view into the mapping
-     *       * On POSIX platforms this is both the view and the handle to the
-     *       mapping
-     */
-    std::uint8_t* _data;
-
-    // We cache the size as it is requested every cycle by the VM
-    std::size_t _size;
 };
 
 }   // namespace reqvm
