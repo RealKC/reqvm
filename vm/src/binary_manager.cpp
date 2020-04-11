@@ -24,7 +24,7 @@
 
 #include "binary_manager.hpp"
 
-#include "binary_managers/ifstream_backed.hpp"
+#include "binary_managers/file_backed.hpp"
 #include "binary_managers/memory_mapped_file_backed.hpp"
 #include "binary_managers/vector_backed.hpp"
 

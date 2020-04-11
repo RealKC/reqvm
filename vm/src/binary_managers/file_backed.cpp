@@ -22,16 +22,16 @@
  * SOFTWARE.
  */
 
-#include "ifstream_backed.hpp"
+#include "file_backed.hpp"
 
 namespace reqvm {
 
-ifstream_backed_binary_manager::ifstream_backed_binary_manager(
+file_backed_binary_manager::file_backed_binary_manager(
     const std::filesystem::path& path) noexcept
     : _binary {path, std::ios::binary}
     , _size {std::filesystem::file_size(path)} {}
 
-auto ifstream_backed_binary_manager::operator[](std::size_t idx) noexcept
+auto file_backed_binary_manager::operator[](std::size_t idx) noexcept
     -> std::uint8_t {
     if (auto pos = _binary.tellg(); pos >= 0) {
         if (idx == static_cast<std::size_t>(_binary.tellg())) {
@@ -49,7 +49,7 @@ auto ifstream_backed_binary_manager::operator[](std::size_t idx) noexcept
     return static_cast<std::uint8_t>(byte);
 }
 
-auto ifstream_backed_binary_manager::size() noexcept -> std::size_t {
+auto file_backed_binary_manager::size() noexcept -> std::size_t {
     return _size;
 }
 

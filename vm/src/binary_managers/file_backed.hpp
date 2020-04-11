@@ -34,14 +34,14 @@
 
 namespace reqvm {
 
-class ifstream_backed_binary_manager final : public binary_manager {
-    REQVM_MAKE_NONCOPYABLE(ifstream_backed_binary_manager)
-    REQVM_MAKE_NONMOVABLE(ifstream_backed_binary_manager)
+class file_backed_binary_manager final : public binary_manager {
+    REQVM_MAKE_NONCOPYABLE(file_backed_binary_manager)
+    REQVM_MAKE_NONMOVABLE(file_backed_binary_manager)
 public:
-    ifstream_backed_binary_manager() = delete;
-    ifstream_backed_binary_manager(const std::filesystem::path&) noexcept;
+    file_backed_binary_manager() = delete;
+    file_backed_binary_manager(const std::filesystem::path&) noexcept;
 
-    virtual ~ifstream_backed_binary_manager() noexcept = default;
+    virtual ~file_backed_binary_manager() noexcept = default;
 
     auto operator[](std::size_t idx) noexcept -> std::uint8_t override;
 
