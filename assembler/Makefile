@@ -29,7 +29,8 @@ endif
 build: $(NAME)
 
 thirdparty/magic_enum/include/magic_enum.hpp:
-	git submodule init
+	git submodule init # Is this the correct git submodule workflow? if not and
+	git submodule update # you're a git expert, plz help
 
 $(NAME): thirdparty/magic_enum/include/magic_enum.hpp $(OBJ)
 		$(CC) -o $@ $^ $(CFLAGS)
