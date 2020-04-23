@@ -28,7 +28,7 @@ endif
 
 build: $(NAME)
 
-thirdparty/magic_enum/include/magicic_enum.hpp:
+thirdparty/magic_enum/include/magic_enum.hpp:
 	git submodule init
 
 $(NAME): thirdparty/magic_enum/include/magic_enum.hpp $(OBJ)
