@@ -94,7 +94,7 @@ auto mmap_error::what() const noexcept -> const char* {
     switch (_k) {
     case kind::file: {
 #define PREFIX "An error occured while trying to open the binary:"
-        switch (ec) {
+        switch (_ec) {
             // clang-format off
         // Note: this doesn't check all error codes from open
         //       I only picked those that seemed relevant for my usecase
@@ -123,7 +123,7 @@ auto mmap_error::what() const noexcept -> const char* {
     case kind::file_size: {
 #define PREFIX                                                                 \
     "An error occured while trying to obtain the size of the binary: "
-        switch (ec) {
+        switch (_ec) {
             // clang-format off
         // Note: See previous note, same things apply
         //       Except errors that can happen at the ::open level are not 
@@ -140,7 +140,7 @@ auto mmap_error::what() const noexcept -> const char* {
     }
     case kind::mapping: {
 #define PREFIX "An error occured while trying to memory map the binary: "
-        switch (ec) {
+        switch (_ec) {
             // clang-format off
         CASE(EACCES, "The file descriptor referring to your file is nonregular")
         CASE(ENFILE, "The system-wide limit on the total number of open "
