@@ -55,8 +55,6 @@ private:
     using handle_t = void*;
     handle_t _file;
     handle_t _mapping;
-#elif defined(REQVM_ON_POSIX)
-    int _file_descriptor;
 #endif
     /* NOTE:
      *       * On MS Windows this is a view into the mapping

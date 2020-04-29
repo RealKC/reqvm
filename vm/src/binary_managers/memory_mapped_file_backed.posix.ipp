@@ -55,31 +55,65 @@
 
 namespace reqvm {
 
+// Not sure how strong my error handling game is here. If you wish for it to be
+// improved, send a PR my way.
 mmf_backed_binary_manager::mmf_backed_binary_manager(const fs::path& path) {
-    _file_descriptor = ::open(path.c_str(), O_RDONLY);
-    if (_file_descriptor == -1) {
+#define IGNORE_RETURN(x) (void)(x)
+
+    auto fd = ::open(path.c_str(), O_RDONLY);
+
+    if (fd == -1) {
         throw mmap_error {errno, mmap_error::kind::file};
     }
+
     {
         // We ask the kernel for the file size so we're 100% in sync with what
         // the kernel believes the file size is.
         struct stat st;
-        if (::fstat(_file_descriptor, &st) != 0) {
-            throw mmap_error {errno, mmap_error::kind::file_size};
+        if (::fstat(fd, &st) != 0) {
+            auto old_errno = errno;
+            // I think the fstat error is more important in my case
+            // All file descriptors should be closed soon anyway, since we're
+            // gonna shut down anyway.
+            // Though we could just leave it to the kernel to clean it? 🤔
+            IGNORE_RETURN(::close(fd));
+            throw mmap_error {old_errno, mmap_error::kind::file_size};
         }
         _size = static_cast<std::size_t>(st.st_size);
     }
+
     _data = static_cast<std::uint8_t*>(
-        ::mmap(nullptr, _size, PROT_READ, MAP_SHARED, _file_descriptor, 0));
+        ::mmap(nullptr, _size, PROT_READ, MAP_SHARED, fd, 0));
     if (_data == static_cast<std::uint8_t*>(MAP_FAILED)) {
+        auto old_errno = errno;
+        // See previous disclaimer on ::close()
+        IGNORE_RETURN(::close(fd));
         throw mmap_error {errno, mmap_error::kind::mapping};
     }
+
+    /*
+     * We close the file descriptor here, as this Stack Overflow post:
+     * https://stackoverflow.com/a/17490185 indicates it should be safe
+     * Notes on errors:
+     * * EBADF shouldn't happen.
+     * * On EINTR: https://stackoverflow.com/a/33114363
+     *             There are other POSIX systems sure, but whatever, the file
+     *             stays open anyway(because it's mmaped), so I'll ignore it.
+     * * We don't write, so I don't think ENOSPC or EDQUOT should occur
+     * So we end up caring for EIO only.
+     */
+    if (::close(fd) != 0 && errno == EIO) {
+        // Maybe ignoring this unmap error isn't that good of an idea, BUT
+        // the error we wish to report is EIO, so...
+        IGNORE_RETURN(::munmap(_data, _size));
+        throw mmap_error {EIO, mmap_error::kind::file};
+    }
+#undef IGNORE_RETURN
 }
 
 mmf_backed_binary_manager::~mmf_backed_binary_manager() {
-    // These functions can fail, how should we handle that?
+    // Unmapping can fail, how (if we should) handle that?
     ::munmap(_data, _size);
-    ::close(_file_descriptor);
 }
 
 mmap_error::mmap_error(error_code_t ec, kind k) noexcept : _ec {ec}, _k {k} {}
@@ -114,6 +148,7 @@ auto mmap_error::what() const noexcept -> const char* {
         CASE(ENOTDIR, "A directory component in your path is not actually "
                       "a directory.")
         CASE(EOVERFLOW, "The file was too large to be opened.")
+        CASE(EIO, "An I/O error occured.")
             // clang-format on
 
         default:
