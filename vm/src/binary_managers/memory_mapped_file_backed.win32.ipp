@@ -69,6 +69,8 @@ mmf_backed_binary_manager::mmf_backed_binary_manager(const fs::path& path) {
     }
 
     {
+        // We ask the kernel for the file size so we're 100% sure we're in sync
+        // with what the kernel believes.
         ::LARGE_INTEGER sz;
         if (::GetFileSizeEx(_file, &sz)) {
             throw mmap_error {::GetLastError(), mmap_error::kind::file_size};

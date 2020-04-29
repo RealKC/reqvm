@@ -61,6 +61,8 @@ mmf_backed_binary_manager::mmf_backed_binary_manager(const fs::path& path) {
         throw mmap_error {errno, mmap_error::kind::file};
     }
     {
+        // We ask the kernel for the file size so we're 100% in sync with what
+        // the kernel believes the file size is.
         struct stat st;
         if (::fstat(_file_descriptor, &st) != 0) {
             throw mmap_error {errno, mmap_error::kind::file_size};
