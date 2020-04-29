@@ -317,7 +317,6 @@ auto vm::cycle(common::opcode op) -> void {
 
     case opcode::jeq: {
         CHECK_AT_LEAST_8_BYTES(jeq);
-        // TODO: check the condition for jumping
         if (_flags.cmp_flag == U64(flags::cf::eq)) {
             MAKE_8_BYTE_VAL(address);
             _regs.jump_to(address);
@@ -328,7 +327,6 @@ auto vm::cycle(common::opcode op) -> void {
     }
     case opcode::jneq: {
         CHECK_AT_LEAST_8_BYTES(jneq)
-        // TODO: check the condition for jumping
         if (_flags.cmp_flag != U64(flags::cf::eq)) {
             MAKE_8_BYTE_VAL(address);
             _regs.jump_to(address);
@@ -339,7 +337,6 @@ auto vm::cycle(common::opcode op) -> void {
     }
     case opcode::jl: {
         CHECK_AT_LEAST_8_BYTES(jl)
-        // TODO: check the condition for jumping
         if (_flags.cmp_flag == U64(flags::cf::less)) {
             MAKE_8_BYTE_VAL(address);
             _regs.jump_to(address);
@@ -350,7 +347,6 @@ auto vm::cycle(common::opcode op) -> void {
     }
     case opcode::jleq: {
         CHECK_AT_LEAST_8_BYTES(jleq)
-        // TODO: check the condition for jumping
         if (_flags.cmp_flag == U64(flags::cf::less)
             || _flags.cmp_flag == U64(flags::cf::eq)) {
             MAKE_8_BYTE_VAL(address);
@@ -362,7 +358,6 @@ auto vm::cycle(common::opcode op) -> void {
     }
     case opcode::jg: {
         CHECK_AT_LEAST_8_BYTES(jq)
-        // TODO: check the condition for jumping
         if (_flags.cmp_flag == U64(flags::cf::gr)) {
             MAKE_8_BYTE_VAL(address);
             _regs.jump_to(address);
@@ -373,7 +368,6 @@ auto vm::cycle(common::opcode op) -> void {
     }
     case opcode::jgeq: {
         CHECK_AT_LEAST_8_BYTES(jgeq)
-        // TODO: check the condition for jumping
         if (_flags.cmp_flag == U64(flags::cf::gr)
             || _flags.cmp_flag == U64(flags::cf::eq)) {
             MAKE_8_BYTE_VAL(address);
