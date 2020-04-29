@@ -86,7 +86,7 @@ auto assembler::run() -> int {
                     [](const std::string& line) -> std::uint64_t {
                     // Skip the instruction
                     std::size_t num_start = line.find_first_of(' ');
-                    while (!isdigit(line[num_start])) {
+                    while (not isdigit(line[num_start])) {
                         num_start++;
                     }
                     auto num_candidate =
@@ -104,7 +104,7 @@ auto assembler::run() -> int {
             }
             case opcode_category::unary_label: {
                 std::size_t label_start = line.find_first_of(' ');
-                while (!std::isalpha(line[label_start])) {
+                while (not std::isalpha(line[label_start])) {
                     label_start++;
                 }
                 std::size_t label_end = label_start;
@@ -432,7 +432,7 @@ auto assembler::get_io_op(const std::string& line)
     -> std::optional<common::io_op> {
     LOG1(line);
     auto op_start = line.find_first_of(' ');
-    while (!std::isalpha(line[op_start])) {
+    while (not std::isalpha(line[op_start])) {
         op_start++;
     }
     auto op_end = op_start;
