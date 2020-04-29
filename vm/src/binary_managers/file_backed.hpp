@@ -30,7 +30,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
-#include <memory>
 
 namespace reqvm {
 

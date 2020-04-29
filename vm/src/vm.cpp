@@ -28,11 +28,8 @@
 #include "exceptions.hpp"
 #include "io.hpp"
 
-#include <algorithm>
 #include <array>
 #include <filesystem>
-#include <fstream>
-#include <iostream>
 
 static inline auto is_version_compatible(std::uint16_t major,
                                          std::uint16_t minor,

@@ -31,6 +31,7 @@
 #include "stack.hpp"
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 namespace reqvm {
@@ -40,6 +41,7 @@ public:
     vm() = delete;
     explicit vm(const std::string& binary);
     ~vm() noexcept = default;
+
     auto run() -> int;
 
 private:
