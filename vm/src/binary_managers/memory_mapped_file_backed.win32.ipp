@@ -51,6 +51,14 @@
 #include <cstring>
 #include <new>
 
+#if defined(REQVM_ON_WINDOWS)
+// Any Windows API Gods able to help me trim down this include?
+// Alternatively I could figure out exactly which headers I need and only
+// include those, but that seems tedious.
+#    define WIN32_LEAN_AND_MEAN
+#    include <windows.h>
+#endif
+
 namespace reqvm {
 
 mmf_backed_binary_manager::mmf_backed_binary_manager(

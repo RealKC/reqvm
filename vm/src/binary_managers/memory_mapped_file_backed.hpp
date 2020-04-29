@@ -31,14 +31,6 @@
 #include <cstdint>
 #include <filesystem>
 
-#if defined(REQVM_ON_WINDOWS)
-// Any Windows API Gods able to help me trim down this include?
-// Alternatively I could figure out exactly which headers I need and only
-// include those, but that seems tedious.
-#    define WIN32_LEAN_AND_MEAN
-#    include <windows.h>
-#endif
-
 namespace reqvm {
 
 class mmf_backed_binary_manager final : public binary_manager {
@@ -56,8 +48,13 @@ public:
 
 private:
 #if defined(REQVM_ON_WINDOWS)
-    ::HANDLE _file;
-    ::HANDLE _mapping;
+    // We use this instead of ::HANDLE to avoid including <windows.h> here
+    // "But what if Microsoft decides to change that typedef?"
+    // Well blimey, that'd be quiet the ABI breaking change, and Microsoft is
+    // known for their backwards compat, so it won't be happening dawg.
+    using handle_t = void*;
+    handle_t _file;
+    handle_t _mapping;
 #elif defined(REQVM_ON_POSIX)
     int _file_descriptor;
 #endif

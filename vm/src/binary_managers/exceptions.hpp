@@ -26,14 +26,6 @@
 
 #include "../detect_platform.hpp"
 
-#if defined(REQVM_ON_WINDOWS)
-// Any Windows API Gods able to help me trim down this include?
-// Alternatively I could figure out exactly which headers I need and only
-// include those, but that seems tedious.
-#    define WIN32_LEAN_AND_MEAN
-#    include <windows.h>
-#endif
-
 #include <stdexcept>
 
 namespace reqvm {
@@ -47,7 +39,10 @@ namespace reqvm {
 class mmap_error : public std::exception {
 public:
 #if defined(REQVM_ON_WINDOWS)
-    using error_code_t = ::DWORD;
+    // ::DWORD is defined as unsigned long, and as Microsoft is known for their
+    // backwards compatibility, that won't change.
+    // This way we can avoid including windows.h here.
+    using error_code_t = unsigned long;
 #elif defined(REQVM_ON_POSIX)
     using error_code_t = int;
 #endif
