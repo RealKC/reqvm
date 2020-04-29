@@ -38,7 +38,7 @@ class mmf_backed_binary_manager final : public binary_manager {
     REQVM_MAKE_NONMOVABLE(mmf_backed_binary_manager)
 public:
     mmf_backed_binary_manager() = delete;
-    explicit mmf_backed_binary_manager(const std::filesystem::path&);
+    explicit mmf_backed_binary_manager(const fs::path&);
 
     virtual ~mmf_backed_binary_manager() noexcept;
 

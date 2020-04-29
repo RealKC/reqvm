@@ -55,8 +55,7 @@
 
 namespace reqvm {
 
-mmf_backed_binary_manager::mmf_backed_binary_manager(
-    const std::filesystem::path& path) {
+mmf_backed_binary_manager::mmf_backed_binary_manager(const fs::path& path) {
     _file_descriptor = ::open(path.c_str(), O_RDONLY);
     if (_file_descriptor == -1) {
         throw mmap_error {errno, mmap_error::kind::file};

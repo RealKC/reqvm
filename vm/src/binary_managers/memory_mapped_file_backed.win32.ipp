@@ -61,8 +61,7 @@
 
 namespace reqvm {
 
-mmf_backed_binary_manager::mmf_backed_binary_manager(
-    const std::filesystem::path& path) {
+mmf_backed_binary_manager::mmf_backed_binary_manager(const fs::path& path) {
     _file = ::CreateFileW(path.c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING,
                           FILE_ATTRIBUTE_NORMAL, nullptr);
     if (_file == INVALID_HANDLE_VALUE) {
