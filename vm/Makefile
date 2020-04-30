@@ -19,7 +19,7 @@ OBJ = $(SRC:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 
 DEBUG = yes
 ifeq ($(DEBUG), yes)
-	CFLAGS += -O0 -g
+	CFLAGS += -Og -g
 else
 	CFLAGS += -O3
 endif
