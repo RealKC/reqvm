@@ -47,7 +47,7 @@ public:
     static auto parse_from_byte(std::uint8_t byte) -> tag;
     static auto is_error_on_lhs(tag reg) noexcept -> bool;
 
-    registers() noexcept;
+    registers() noexcept = default;
     ~registers() noexcept = default;
 
     auto operator[](tag reg) -> std::uint64_t&;
@@ -78,11 +78,11 @@ public:
     }
 
 private:
-    std::array<std::uint64_t, 64> _general_purpose;
-    std::array<std::uint64_t, 16> _integer_functions_args;
-    std::uint64_t _program_counter;
-    std::uint64_t _stack_pointer;
-    std::uint64_t _integer_return;
+    std::array<std::uint64_t, 64> _general_purpose {0};
+    std::array<std::uint64_t, 16> _integer_functions_args {0};
+    std::uint64_t _program_counter {0};
+    std::uint64_t _stack_pointer {0};
+    std::uint64_t _integer_return {0};
 };
 
 }   // namespace reqvm
