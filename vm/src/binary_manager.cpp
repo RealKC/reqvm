@@ -24,7 +24,6 @@
 
 #include "binary_manager.hpp"
 
-#include "binary_managers/file_backed.hpp"
 #include "binary_managers/memory_mapped_file_backed.hpp"
 #include "binary_managers/vector_backed.hpp"
 
@@ -37,7 +36,6 @@ auto load_from(const fs::path& path) -> std::unique_ptr<binary_manager> {
             path, static_cast<std::size_t>(file_size));
     }
     return std::make_unique<mmf_backed_binary_manager>(path);
-    // return std::make_unique<ifstream_backed_binary_manager>(path);
 }
 
 }   // namespace reqvm
