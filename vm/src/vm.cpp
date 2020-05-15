@@ -51,7 +51,7 @@ namespace reqvm {
 
 vm::vm(const std::string& binary) {
     auto path = std::filesystem::path {binary};
-    _binary   = std::move(load_from(path));
+    _binary   = load_from(path);
 }
 
 auto vm::run() -> int {
