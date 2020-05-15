@@ -53,7 +53,9 @@
 #if defined(REQVM_ON_WINDOWS)
 //   How many macros are you even defining?
 //   Like 1 or 2 my dude
-#    define NOMINMAX
+#    ifndef NOMINMAX
+#        define NOMINMAX
+#    endif
 #    define WIN32_LEAN_AND_MEAN
 //   You are like a child
 //   watch this
