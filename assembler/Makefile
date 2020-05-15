@@ -26,13 +26,13 @@ endif
 # AUTO VARIABLE DEFINITION
 
 
-build: $(NAME)
+build: thirdparty/magic_enum/include/magic_enum.hpp $(NAME)
 
 thirdparty/magic_enum/include/magic_enum.hpp:
 	git submodule init # Is this the correct git submodule workflow? if not and
 	git submodule update # you're a git expert, plz help
 
-$(NAME): thirdparty/magic_enum/include/magic_enum.hpp $(OBJ)
+$(NAME): $(OBJ)
 		$(CC) -o $@ $^ $(CFLAGS)
 
 -include $(OBJ:.o=.d)
