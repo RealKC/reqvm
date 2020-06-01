@@ -10,7 +10,7 @@ If you wish to contribute, check out the [contribution guidelines](CONTRIBUTING.
 
 ## Documentation
 
-* [the specification document](documentation/specification_doc.md)
+* [the specification document](documentation/specification.md)
 * [the assembler syntax](documentation/assembler_syntax.md)
 
 More documentation to come as I write it.
