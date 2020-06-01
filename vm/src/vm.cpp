@@ -120,8 +120,8 @@ auto vm::cycle(common::opcode op) -> void {
             "build its argument."};                                            \
     }
 
-    using common::opcode;
     switch (op) {
+        using common::opcode;
     case opcode::noop: {
         // do nothing but advance pc
         _regs.advance_pc(1);
@@ -143,8 +143,8 @@ auto vm::cycle(common::opcode op) -> void {
         break;
     }
     case opcode::io: {
-        using common::io_op;
         switch (io::parse_from_byte((*_binary)[_regs.pc() + 1])) {
+            using common::io_op;
         case io_op::getc: {
             auto reg = registers::parse_from_byte((*_binary)[_regs.pc() + 2]);
             if (registers::is_error_on_lhs(reg)) {
