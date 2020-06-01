@@ -50,46 +50,44 @@
 #include <cstdio>
 #include <new>
 
-#if defined(REQVM_ON_WINDOWS)
-//   How many macros are you even defining?
-//   Like 1 or 2 my dude
-#    ifndef NOMINMAX
-#        define NOMINMAX
-#    endif
-#    define WIN32_LEAN_AND_MEAN
-//   You are like a child
-//   watch this
-#    define NOATOM
-#    define NOCOLOR
-#    define NOCOMM
-#    define NOCTLMGR
-#    define NODRAWTEXT
-#    define NOGDICAPMASKS
-#    define NOHELP
-#    define NOICONS
-#    define NOKEYSTATES
-#    define NOMB
-#    define NOMCX
-#    define NOMETAFILE
-#    define NOMSG
-#    define NORASTEROPS
-#    define NOSCROLL
-#    define NOSERVICE
-#    define NOSHOWINDOW
-#    define NOSOUND
-#    define NOSYSMETRICS
-#    define NOTEXTMETRIC
-#    define NOVIRTUALKEYCODES
-#    define NOWH
-#    define NOWINMESSAGES
-#    define NOWINSTYLES
-#    define NOWINSTYLES
-#    include <windows.h>
-//   Memes aside, all those defines should help with building times
-//   It's not like that stuff removes anything we use anyway
-//   Those defines were brought to you by https://stackoverflow.com/a/1394929
-//   Think those above are enough, some are implied by WIN32_LEAN_AND_MEAN
+// How many macros are you even defining?
+// Like 1 or 2 my dude
+#ifndef NOMINMAX
+#    define NOMINMAX
 #endif
+#define WIN32_LEAN_AND_MEAN
+// You are like a child
+// watch this
+#define NOATOM
+#define NOCOLOR
+#define NOCOMM
+#define NOCTLMGR
+#define NODRAWTEXT
+#define NOGDICAPMASKS
+#define NOHELP
+#define NOICONS
+#define NOKEYSTATES
+#define NOMB
+#define NOMCX
+#define NOMETAFILE
+#define NOMSG
+#define NORASTEROPS
+#define NOSCROLL
+#define NOSERVICE
+#define NOSHOWINDOW
+#define NOSOUND
+#define NOSYSMETRICS
+#define NOTEXTMETRIC
+#define NOVIRTUALKEYCODES
+#define NOWH
+#define NOWINMESSAGES
+#define NOWINSTYLES
+#define NOWINSTYLES
+#include <windows.h>
+// Memes aside, all those defines should help with building times
+// It's not like that stuff removes anything we use anyway
+// Those defines were brought to you by https://stackoverflow.com/a/1394929
+// Think those above are enough, some are implied by WIN32_LEAN_AND_MEAN
 
 namespace reqvm {
 
