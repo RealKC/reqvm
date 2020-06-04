@@ -32,7 +32,6 @@
 #include <utility>
 #include <vector>
 
-
 namespace reqvm {
 
 class macro {
@@ -70,6 +69,8 @@ public:
     }
 
 private:
+    macro(type t) : _type {t} {}
+
     type _type;
 
     std::uint64_t _integral_value;
