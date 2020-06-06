@@ -26,6 +26,7 @@
 
 #include "assertions.hpp"
 #include "instruction.hpp"
+#include "macro.hpp"
 
 #include <cstdint>
 #include <string>
@@ -33,50 +34,6 @@
 #include <vector>
 
 namespace reqvm {
-
-class macro {
-    friend class preprocessor;
-
-public:
-    macro()             = default;
-    macro(const macro&) = default;
-    macro(macro&&)      = default;
-
-    macro& operator=(const macro&) = default;
-    macro& operator=(macro&) = default;
-
-    ~macro() noexcept = default;
-
-    enum class type {
-        integral,
-        string,
-        instruction_list,
-    };
-
-    type type_of_self() { return _type; }
-
-    auto as_integral() {
-        ASSERT(_type == type::integral);
-        return _integral_value;
-    }
-    auto as_string() -> std::string& {
-        ASSERT(_type == type::string);
-        return _string_value;
-    }
-    auto as_instruction_list() -> std::vector<instruction>& {
-        ASSERT(_type == type::instruction_list);
-        return _instruction_list;
-    }
-
-private:
-    macro(type t) : _type {t} {}
-
-    type _type;
-
-    std::uint64_t _integral_value;
-    std::string _string_value;
-    std::vector<instruction> _instruction_list;
-};
 
 class preprocessor {
 public:
