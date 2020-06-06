@@ -38,7 +38,8 @@ auto assertion_failed(const char* file,
                       const char* condition,
                       const char* message) noexcept -> void {
     std::printf("\n\nASSERTION FAILED!\n    in %s:%" PRIu64
-                ":%s: %s was false.\n");
+                ":%s: %s was false.\n",
+                file, line, function_name, condition);
     if (message) {
         std::printf("   Notes: %s\n", message);
     };
