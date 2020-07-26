@@ -24,18 +24,37 @@
 
 #pragma once
 
-#include <cstddef>
+#include "../../common/opcodes.hpp"
+
+#include <cstdint>
 #include <string>
+#include <string_view>
+#include <vector>
 
 namespace reqvm {
 
-enum class level {
-    info,
-    warning,
-    error,
-    internal_assembler_error,
-};
+class instruction {
+public:
+    static auto parse_from(std::string_view line) -> instruction;
 
-auto report_to_user(level lvl, const std::string& message) noexcept -> void;
+    ~instruction() noexcept = default;
+
+    auto append_argument(const std::string& arg) -> void {
+        _arguments.push_back(arg);
+    }
+
+    auto is_invalid() const noexcept { return _invalid; }
+
+private:
+    instruction() noexcept : _opcode {common::opcode::noop}, _invalid {true} {}
+    instruction(common::opcode op, std::vector<std::string>&& args) noexcept
+        : _opcode {op}, _arguments {std::move(args)} {}
+
+    static auto number_of_arguments(common::opcode op) noexcept -> std::uint8_t;
+
+    common::opcode _opcode;
+    bool _invalid {false};
+    std::vector<std::string> _arguments;
+};
 
 }   // namespace reqvm

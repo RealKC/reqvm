@@ -30,3 +30,5 @@
 	add gp01, gp02 
 	push gp01
 	add gp01, sp
+	io putn gp01
+	io putn sp

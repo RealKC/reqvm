@@ -22,20 +22,30 @@
  * SOFTWARE.
  */
 
-#pragma once
+#include "assertions.hpp"
 
-#include <cstddef>
-#include <string>
+#ifndef NDEBUG
 
-namespace reqvm {
+#    include <cinttypes>
+#    include <cstdio>
+#    include <cstdlib>
 
-enum class level {
-    info,
-    warning,
-    error,
-    internal_assembler_error,
-};
+namespace reqvm::assertions {
 
-auto report_to_user(level lvl, const std::string& message) noexcept -> void;
+auto assertion_failed(const char* file,
+                      std::uint64_t line,
+                      const char* function_name,
+                      const char* condition,
+                      const char* message) noexcept -> void {
+    std::printf("\n\nASSERTION FAILED!\n    in %s:%" PRIu64
+                ":%s: %s was false.\n",
+                file, line, function_name, condition);
+    if (message) {
+        std::printf("   Notes: %s\n", message);
+    };
+    std::abort();
+}
 
-}   // namespace reqvm
+}   // namespace reqvm::assertions
+
+#endif

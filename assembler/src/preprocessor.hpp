@@ -24,18 +24,35 @@
 
 #pragma once
 
-#include <cstddef>
+#include "assertions.hpp"
+#include "instruction.hpp"
+#include "macro.hpp"
+
+#include <cstdint>
 #include <string>
+#include <utility>
+#include <vector>
 
 namespace reqvm {
 
-enum class level {
-    info,
-    warning,
-    error,
-    internal_assembler_error,
-};
+class preprocessor {
+public:
+    explicit preprocessor(std::string&& source);
+    ~preprocessor() noexcept = default;
 
-auto report_to_user(level lvl, const std::string& message) noexcept -> void;
+private:
+    enum class keyword {
+        invalid,
+        if_,
+        else_,
+        elif,
+        end,
+        define,
+    };
+    static auto get_keyword_from(const std::string& line) -> keyword;
+
+    bool _had_errors {false};
+    macro _result;
+};
 
 }   // namespace reqvm
