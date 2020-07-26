@@ -24,6 +24,7 @@
 
 #include "preprocessor.hpp"
 
+#include <cctype>
 #include <sstream>
 #include <string_view>
 #include <unordered_map>
@@ -35,10 +36,17 @@ preprocessor::preprocessor(std::string&& source_str) {
 
     bool is_in_instruction_list {false};
     bool may_get_else_or_elif_directive {false};
+    bool line_was_consumed_already {false};
     bool done {false};
 
     std::string line;
-    while (std::getline(source, line) && not done) {
+    while (not done) {
+        if (not line_was_consumed_already) {
+            if (not std::getline(source, line)) {
+                _had_errors = true;
+                break;
+            }
+        }
         if (line[0] == '%') {
             switch (get_keyword_from(line)) {
             case keyword::if_:
@@ -46,16 +54,22 @@ preprocessor::preprocessor(std::string&& source_str) {
                 // TODO
                 break;
             case keyword::else_:
+                if (not may_get_else_or_elif_directive) {
+                    // Error
+                }
+                may_get_else_or_elif_directive = false;
                 // TODO
                 break;
             case keyword::elif:
                 may_get_else_or_elif_directive = true;
                 // TODO
                 break;
-            case keyword::define:
-                // TODO
+            case keyword::define: {
+                macro m {extract_macro_type(line)};
                 break;
+            }
             case keyword::end:
+                done = true;
                 // TODO
                 break;
             case keyword::invalid:
@@ -88,6 +102,34 @@ auto preprocessor::get_keyword_from(const std::string& line) -> keyword {
     std::string_view attempt {line.data() + 1, line.find_first_of(' ')};
     return keywords.find(attempt) != keywords.end() ? keywords[attempt]
                                                     : keyword::invalid;
+}
+
+auto preprocessor::extract_macro_type(const std::string& line) -> macro::type {
+    auto type_start = line.find_first_of('%', 1) + 1;   // Skips leading '%'
+
+    if (std::string_view {line.data() + type_start, 4} != "type") {
+        _had_errors = true;
+        return macro::type::invalid;
+    }
+
+    type_start += 4;
+
+    while (std::isspace(line[type_start])) {
+        type_start++;
+    }
+
+    static std::unordered_map<std::string_view, macro::type> macro_types {
+        {"integral", macro::type::integral},
+        {"string", macro::type::string},
+        {"instruction_list", macro::type::instruction_list}};
+
+    auto next_space = line.find_first_of(' ', type_start);
+    std::string_view attempt {line.data() + type_start,
+                              next_space - type_start};
+
+    return macro_types.find(attempt) != macro_types.end()
+               ? macro_types[attempt]
+               : macro::type::invalid;
 }
 
 }   // namespace reqvm
